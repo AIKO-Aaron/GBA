@@ -5,8 +5,8 @@ Debugger::VRAM_GUI::VRAM_GUI(Base::CPU *_cpu) : cpu(_cpu) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 }
 
-int i = 0;
-byte randValue = 0;
+static int i = 0;
+static byte randValue = 0;
 
 void Debugger::VRAM_GUI::render_background(byte bg) {
     word cntrl = cpu->mmu->memory[4][8 + 2 * bg];

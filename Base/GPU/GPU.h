@@ -22,6 +22,7 @@ namespace Base {
 
             void update();
             void render(Base::CPU *cpu);
+			void render_background(byte bg);
 
             inline void update_cycles(int num) { cycles += num; }
     };

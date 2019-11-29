@@ -29,7 +29,7 @@ namespace Base {
 
 			if(pc().data.reg32 == 0x0000013C) {
 
-				printf("Returned from interrupt to: %.08X\n", reg(LR).data.reg32);
+				//printf("Returned from interrupt to: %.08X\n", reg(LR).data.reg32);
 			}
             
 			bool interrupts_enabled = r8(0x04000208) & 1;
@@ -47,7 +47,7 @@ namespace Base {
 				(*set)[CPSR].data.reg32 &= 0xFFFFFF40 | MODE_IRQ;
 				(*set)[CPSR].data.reg32 |= FLAG_I | FLAG_F;
 
-				printf("Interrupt occured: %.04X\n", interrupts);
+				//printf("Interrupt occured: %.04X\n", interrupts);
 
 				mmu->halted = false;
 			}
