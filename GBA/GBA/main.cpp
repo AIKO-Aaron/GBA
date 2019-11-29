@@ -11,8 +11,9 @@ int main(int argc, char **args) {
 	const uint8_t* keys = SDL_GetKeyboardState(&num);
 
     int counter = 0; // 0x082E062D
-    while((interpreter->pc().data.reg32 != 0xFFFFFFFF) && interpreter->cpu->r32(interpreter->pc().data.reg32) != 0 && (interpreter->pc().data.reg32 & 1) == 0 && !keys[SDL_SCANCODE_0]) {
+    while((interpreter->pc().data.reg32 != 0x082E70D6) && interpreter->cpu->r32(interpreter->pc().data.reg32) != 0 && (interpreter->pc().data.reg32 & 1) == 0 && !keys[SDL_SCANCODE_0]) {
         interpreter->executeNextInstruction(false);
+		interpreter->cpu->mmu->button_a = keys[SDL_SCANCODE_W];
         if(++counter >= 280896) {
             counter = 0;
             interpreter->cpu->render();

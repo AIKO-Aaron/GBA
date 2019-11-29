@@ -36,6 +36,8 @@ namespace Base {
 		byte **memory = nullptr;
         Timers *timers;
 
+		bool button_a = false;
+
 		MMU(MMU &mmu);
 		int i = 0;
 		inline byte r8(word address) { 
@@ -43,8 +45,8 @@ namespace Base {
 			return *(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF]));
 		}
 		inline hword r16(word address) { 
-			if (address == 0x04000130) return 0x3FFF;
-			if(address == 0x0BFFFFE0 + 2 * i) return 0xFFF0 + i++; 
+			if (address == 0x04000130) return 0x3FFE | (button_a ? 0 : 1);
+			if (address == 0x0BFFFFE0 + 2 * i) return 0xFFF0 + i++; 
 			return *(hword*)(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF])); 
 		}
 		inline word r32(word address) { if (address >= 0x10000000) return 0;  return *(word*)(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF])); }

@@ -18,8 +18,40 @@ int i = 0;
 byte randValue = 0;
 static int frame_num = 0;
 
-void Base::GPU::render_background(byte bg) {
-	word cntrl = mmu->memory[4][8 + 2 * bg];
+inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_off, int y_off, bool color_depth, bool horizontal_flip, bool vertical_flip) {
+	if (x_off < -8 || y_off < -8 || x_off >= 240 || y_off >= 160) return;
+	for (int y = horizontal_flip ? 7 : 0; horizontal_flip ? (y >= 0) : (y < 8); y += horizontal_flip ? -1 : 1) {
+		for (int x = vertical_flip ? (color_depth ? 7 : 3) : 0; vertical_flip ? (x >= 0) : (x < (color_depth ? 8 : 4)); x += vertical_flip ? -1 : 1) {
+			if (color_depth) {
+				byte a = data[y * 8 + x];
+				hword color = plt[a];
+				if (a) {
+					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
+					SDL_RenderDrawPoint(renderer, (int)x + x_off, (int)y + y_off);
+				}
+			}
+			else {
+				byte a = data[y * 4 + x];
+				int b1 = ((palette << 4) & 0xF0) | (a & 0xF);
+				int b2 = ((palette << 4) & 0xF0) | (a >> 4);
+				hword color = plt[b1];
+				if (b1) {
+					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
+					SDL_RenderDrawPoint(renderer, (int)x * 2 + (vertical_flip ? 1 : 0) + (int)x_off, (int) y + y_off);
+				}
+				color = plt[b2];
+				if (b2) {
+					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
+					SDL_RenderDrawPoint(renderer, (int)x * 2 + (vertical_flip ? 0 : 1) + (int)x_off, (int) y + y_off);
+				}
+			}
+		}
+	}
+}
+
+inline void Base::GPU::render_background(byte bg) {
+	hword cntrl = *(hword*) (&mmu->memory[4][8 + 2 * (int) bg]);
+	byte size = (cntrl >> 14) & 0x3;
 
 	word off = ((cntrl >> 2) & 3) * 0x4000;
 	bool color_depth = cntrl & (1 << 7);
@@ -27,38 +59,29 @@ void Base::GPU::render_background(byte bg) {
 	hword* palette_bg = (hword*)(mmu->memory[5]);
 	byte* vram_data = mmu->memory[6];
 
-	for (int i = 0; i < 16 * 2; i++) {
-		for (int j = 0; j < 16 * 2; j++) {
+	int x_off = mmu->memory[4][0x10 + 4 * bg] | ((mmu->memory[4][0x11 + 4 * bg] << 8) & 0x100);
+	int y_off = mmu->memory[4][0x12 + 4 * bg] | ((mmu->memory[4][0x13 + 4 * bg] << 8) & 0x100);
 
-			SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
-			SDL_RenderDrawPoint(renderer, j * 8 - 1 + (bg % 2) * 256, i * 8 - 1 + (bg / 2) * 256);
+	word base_off = (cntrl >> 8) & 0x1F;
+	word start_addr = base_off * 0x800;
+	
 
-			word off_tot = off + i * 32 + j;
-			for (int y = 0; y < 8; y++) {
-				for (int x = 0; x < (color_depth ? 8 : 4); x++) {
-					if (color_depth) {
-						byte a = vram_data[off_tot + y * (color_depth ? 8 : 4) + x];
-						hword color = palette_bg[a];
-						SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-						SDL_RenderDrawPoint(renderer, (int)x + j * 8 + (bg % 2) * 256, (int)y + i * 8 + (bg / 2) * 256);
-					}
-					else {
-						byte a = vram_data[off_tot + y * (color_depth ? 8 : 4) + x];
-						int b1 = ((randValue) & 0xF0) | (a & 0xF);
-						int b2 = ((randValue) & 0xF0) | (a >> 4);
-						hword color = palette_bg[b1];
-						SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-						SDL_RenderDrawPoint(renderer, (int)x * 2 + 1 + j * 8 + (bg % 2) * 256, (int)y + i * 8 + (bg / 2) * 256);
-						color = palette_bg[b2];
-						SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-						SDL_RenderDrawPoint(renderer, (int)x * 2 + 0 + j * 8 + (bg % 2) * 256, (int)y + i * 8 + (bg / 2) * 256);
-					}
-				}
-			}
+
+	for (int i = 0; i < 32 * 32 * (size > 0 ? 2 : 1) * (size == 3 ? 2 : 1); i++) {
+		hword data;
+		if (bg_mode == 0 || (bg_mode == 1 && bg <= 1)) {
+			start_addr += 2;
+			data = *(hword*)(vram_data + start_addr);
 		}
-	}
+		else {
+			++start_addr;
+			data = *(byte*)(vram_data + start_addr);
+		}
 
-	if (i++ % 100 == 0) randValue++;
+
+
+		draw_tile(data >> 12, &vram_data[off + (color_depth ? 64 : 32) * ((int) (data & 0x3FF))], palette_bg, (int) (i % 32) * 8 - x_off, (int) (i / 32) * 8 - y_off, color_depth, data & (1 << 10), data & (1 << 11));
+	}
 }
 
 void Base::GPU::update() {
@@ -105,6 +128,9 @@ void Base::GPU::render(Base::CPU *cpu) {
     }
 
     hword dispcnt = cpu->r16(0x04000000);
+
+	bg_mode = dispcnt & 0x7;
+
     hword bg0_cnt = cpu->r16(0x04000008);
     hword bg1_cnt = cpu->r16(0x0400000A);
     hword bg2_cnt = cpu->r16(0x0400000C);
@@ -117,24 +143,14 @@ void Base::GPU::render(Base::CPU *cpu) {
     SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
     SDL_RenderClear(renderer);
 
-    for(int j = 0; j < 160; j++) {
-        for(int i = 0; i < 240; i++) {
-            byte *tile = (byte*)(mmu->memory[6] + 0x00010000 + 0x4000 * ((bg0_cnt >> 2) & 3));
-            byte *map = (byte*)(mmu->memory[6] + 0x00010000 + 0x800 * ((bg0_cnt >> 8) & 0x1F));
-            byte depth = (bg0_cnt & (1 << 8)) ? 8 : 4;
-
-
-
-            default_colors[i + j * 160] = 0;
-        }
-    }
-
     // printf("Dispcnt: %.04X\n", dispcnt);
 
-    //if(dispcnt & 0x0800) printf("BG 3 is on\n");
-    if(dispcnt & 0x0400) printf("BG 2 is on\n");
-    if(dispcnt & 0x0200) printf("BG 1 is on\n");
-	if (dispcnt & 0x0100) render_background(0);
+	for (int i = 3; i >= 0; i--) {
+		if (dispcnt & 0x0100 && (bg0_cnt & 3) == i) render_background(0);
+		if (dispcnt & 0x0200 && (bg1_cnt & 3) == i) render_background(1);
+		if (dispcnt & 0x0400 && (bg2_cnt & 3) == i) render_background(2);
+		if (dispcnt & 0x0800 && (bg3_cnt & 3) == i) render_background(3);
+	}
 
     bool force_blank = (dispcnt & 0x80);
     force_blank = false;
@@ -175,8 +191,12 @@ void Base::GPU::render(Base::CPU *cpu) {
                 h = 16 * (1 << size);
                 break;
             default:
-                printf("What should this be (GPU -> Obj with size 3)\n");
-                exit(0);
+                //printf("What should this be (GPU -> Obj with size 3)\n");
+                //exit(0);
+
+				w = 8 * (1 << size);
+				h = 8 * (1 << size);
+				break;
         }
 
         int pt_size = double_size ? 2 : 1;
