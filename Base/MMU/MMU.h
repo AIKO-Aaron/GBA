@@ -28,6 +28,8 @@ namespace Base {
 		byte *cart = nullptr;
 		
 		word *bit_masks = new word[16];
+
+		void dma_transfer(hword cntrl, word start, word end, word num);
         
         
 	public:
@@ -36,16 +38,18 @@ namespace Base {
 		byte **memory = nullptr;
         Timers *timers;
 
-		bool button_a = false;
+		bool button_a = false, button_start = false, button_up = false, button_down = false, button_left = false, button_right = false;
+		bool breakpoint_hit = false;
 
 		MMU(MMU &mmu);
 		int i = 0;
+
 		inline byte r8(word address) { 
 			if (address == 0x0890000C4) return gpio; 
 			return *(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF]));
 		}
 		inline hword r16(word address) { 
-			if (address == 0x04000130) return 0x3FFE | (button_a ? 0 : 1);
+			if (address == 0x04000130) return 0x3F06 | (button_a ? 0 : 1) | (button_start ? 0 : 8) | (button_right ? 0 : 16) | (button_left ? 0 : 32) | (button_up ? 0 : 64) | (button_down ? 0 : 128);
 			if (address == 0x0BFFFFE0 + 2 * i) return 0xFFF0 + i++; 
 			return *(hword*)(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF])); 
 		}
@@ -53,8 +57,8 @@ namespace Base {
 
 		bool halted = false;
         
-        inline void check_stuff(word addr, word val);
-		inline void pre_check(word address, word val);
+        void check_stuff(word addr, word val);
+		void pre_check(word address, word val);
 
         inline void w8(word address, byte val) {
 			pre_check(address, val);

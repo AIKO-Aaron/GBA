@@ -35,12 +35,12 @@ inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_of
 				int b1 = ((palette << 4) & 0xF0) | (a & 0xF);
 				int b2 = ((palette << 4) & 0xF0) | (a >> 4);
 				hword color = plt[b1];
-				if (b1) {
+				if (a & 0xF) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
 					SDL_RenderDrawPoint(renderer, (int)x * 2 + (vertical_flip ? 1 : 0) + (int)x_off, (int) y + y_off);
 				}
 				color = plt[b2];
-				if (b2) {
+				if (a >> 4) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
 					SDL_RenderDrawPoint(renderer, (int)x * 2 + (vertical_flip ? 0 : 1) + (int)x_off, (int) y + y_off);
 				}
@@ -77,8 +77,6 @@ inline void Base::GPU::render_background(byte bg) {
 			++start_addr;
 			data = *(byte*)(vram_data + start_addr);
 		}
-
-
 
 		draw_tile(data >> 12, &vram_data[off + (color_depth ? 64 : 32) * ((int) (data & 0x3FF))], palette_bg, (int) (i % 32) * 8 - x_off, (int) (i / 32) * 8 - y_off, color_depth, data & (1 << 10), data & (1 << 11));
 	}
@@ -247,6 +245,6 @@ void Base::GPU::render(Base::CPU *cpu) {
         }
     }
 
-	printf("Frame %d\n", frame_num++);
+	//printf("Frame %d\n", frame_num++);
     SDL_RenderPresent(renderer);
 }

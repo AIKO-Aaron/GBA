@@ -17,5 +17,6 @@ namespace Debugger {
         VRAM_GUI(Base::CPU *_cpu);
         void render();
         void render_background(byte bg);
+		void render_tile(byte num);
     };
 }

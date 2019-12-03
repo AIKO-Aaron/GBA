@@ -80,7 +80,7 @@ word Base::shift(byte data, word reg, Base::CPU *cpu, bool set_cond) {
 			result >>= amt;
 			break;
 		case 2: // arithmetic right
-			if(amt == 0) {
+			if(amt == 0 && !(data & 1)) {
 				result = result & 0x80000000 ? 0xFFFFFFFF : 0;
 			}
 			carryOut = result & (1 << (amt - 1));

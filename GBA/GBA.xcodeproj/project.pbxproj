@@ -1,0 +1,375 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		131AAB57234A580800D019BD /* zelda.gba in CopyFiles */ = {isa = PBXBuildFile; fileRef = 131AAB56234A580000D019BD /* zelda.gba */; };
+		133849F0231287CB009563D3 /* emerald.gba in CopyFiles */ = {isa = PBXBuildFile; fileRef = 133849EF231287C4009563D3 /* emerald.gba */; };
+		1374B6522326E634006193B8 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1374B6512326E634006193B8 /* libSDL2.a */; };
+		1374B6542326E8BF006193B8 /* Raleway-Regular.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1374B6532326E8B8006193B8 /* Raleway-Regular.ttf */; };
+		1374B6562326EA01006193B8 /* libSDL2_ttf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1374B6552326EA01006193B8 /* libSDL2_ttf.a */; };
+		9306833F2307BAAC00B711BB /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9306833E2307BAAC00B711BB /* main.cpp */; };
+		930683472307BAB700B711BB /* libBase.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 930683462307BAB700B711BB /* libBase.a */; };
+		930683492307BAB700B711BB /* libDebugger.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 930683482307BAB700B711BB /* libDebugger.a */; };
+		9306834B2307BAB700B711BB /* libDecompiler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9306834A2307BAB700B711BB /* libDecompiler.a */; };
+		9306837C2307D83600B711BB /* bios.gba in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9306837B2307D82B00B711BB /* bios.gba */; };
+		93B0C9B22391B6AD003E75AD /* firered.gba in CopyFiles */ = {isa = PBXBuildFile; fileRef = 93B0C9B12391B6A3003E75AD /* firered.gba */; };
+		93B0C9B4239253AF003E75AD /* mario.gba in CopyFiles */ = {isa = PBXBuildFile; fileRef = 93B0C9B3239253AB003E75AD /* mario.gba */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		930683392307BAAC00B711BB /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
+			files = (
+				1374B6542326E8BF006193B8 /* Raleway-Regular.ttf in CopyFiles */,
+				93B0C9B22391B6AD003E75AD /* firered.gba in CopyFiles */,
+				131AAB57234A580800D019BD /* zelda.gba in CopyFiles */,
+				9306837C2307D83600B711BB /* bios.gba in CopyFiles */,
+				133849F0231287CB009563D3 /* emerald.gba in CopyFiles */,
+				93B0C9B4239253AF003E75AD /* mario.gba in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		131AAB56234A580000D019BD /* zelda.gba */ = {isa = PBXFileReference; lastKnownFileType = file; path = zelda.gba; sourceTree = "<group>"; };
+		133849EF231287C4009563D3 /* emerald.gba */ = {isa = PBXFileReference; lastKnownFileType = file; path = emerald.gba; sourceTree = "<group>"; };
+		1374B6512326E634006193B8 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../../../../usr/local/Cellar/sdl2/2.0.10/lib/libSDL2.a; sourceTree = "<group>"; };
+		1374B6532326E8B8006193B8 /* Raleway-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Raleway-Regular.ttf"; sourceTree = "<group>"; };
+		1374B6552326EA01006193B8 /* libSDL2_ttf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2_ttf.a; path = ../../../../../usr/local/Cellar/sdl2_ttf/2.0.15/lib/libSDL2_ttf.a; sourceTree = "<group>"; };
+		9306833B2307BAAC00B711BB /* GBA */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GBA; sourceTree = BUILT_PRODUCTS_DIR; };
+		9306833E2307BAAC00B711BB /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		930683462307BAB700B711BB /* libBase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libBase.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		930683482307BAB700B711BB /* libDebugger.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libDebugger.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9306834A2307BAB700B711BB /* libDecompiler.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libDecompiler.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9306837B2307D82B00B711BB /* bios.gba */ = {isa = PBXFileReference; lastKnownFileType = file; path = bios.gba; sourceTree = "<group>"; };
+		93B0C9B12391B6A3003E75AD /* firered.gba */ = {isa = PBXFileReference; lastKnownFileType = file; path = firered.gba; sourceTree = "<group>"; };
+		93B0C9B3239253AB003E75AD /* mario.gba */ = {isa = PBXFileReference; lastKnownFileType = file; path = mario.gba; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		930683382307BAAC00B711BB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1374B6562326EA01006193B8 /* libSDL2_ttf.a in Frameworks */,
+				1374B6522326E634006193B8 /* libSDL2.a in Frameworks */,
+				930683472307BAB700B711BB /* libBase.a in Frameworks */,
+				930683492307BAB700B711BB /* libDebugger.a in Frameworks */,
+				9306834B2307BAB700B711BB /* libDecompiler.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		930683322307BAAC00B711BB = {
+			isa = PBXGroup;
+			children = (
+				1374B6532326E8B8006193B8 /* Raleway-Regular.ttf */,
+				131AAB56234A580000D019BD /* zelda.gba */,
+				9306837B2307D82B00B711BB /* bios.gba */,
+				133849EF231287C4009563D3 /* emerald.gba */,
+				93B0C9B12391B6A3003E75AD /* firered.gba */,
+				93B0C9B3239253AB003E75AD /* mario.gba */,
+				9306833D2307BAAC00B711BB /* GBA */,
+				9306833C2307BAAC00B711BB /* Products */,
+				930683452307BAB700B711BB /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		9306833C2307BAAC00B711BB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9306833B2307BAAC00B711BB /* GBA */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9306833D2307BAAC00B711BB /* GBA */ = {
+			isa = PBXGroup;
+			children = (
+				9306833E2307BAAC00B711BB /* main.cpp */,
+			);
+			path = GBA;
+			sourceTree = "<group>";
+		};
+		930683452307BAB700B711BB /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1374B6552326EA01006193B8 /* libSDL2_ttf.a */,
+				1374B6512326E634006193B8 /* libSDL2.a */,
+				930683462307BAB700B711BB /* libBase.a */,
+				930683482307BAB700B711BB /* libDebugger.a */,
+				9306834A2307BAB700B711BB /* libDecompiler.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9306833A2307BAAC00B711BB /* GBA */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 930683422307BAAC00B711BB /* Build configuration list for PBXNativeTarget "GBA" */;
+			buildPhases = (
+				930683372307BAAC00B711BB /* Sources */,
+				930683382307BAAC00B711BB /* Frameworks */,
+				930683392307BAAC00B711BB /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GBA;
+			productName = GBA;
+			productReference = 9306833B2307BAAC00B711BB /* GBA */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		930683332307BAAC00B711BB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1030;
+				ORGANIZATIONNAME = "Aaron Hodel";
+				TargetAttributes = {
+					9306833A2307BAAC00B711BB = {
+						CreatedOnToolsVersion = 10.3;
+					};
+				};
+			};
+			buildConfigurationList = 930683362307BAAC00B711BB /* Build configuration list for PBXProject "GBA" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 930683322307BAAC00B711BB;
+			productRefGroup = 9306833C2307BAAC00B711BB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9306833A2307BAAC00B711BB /* GBA */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		930683372307BAAC00B711BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9306833F2307BAAC00B711BB /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		930683402307BAAC00B711BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		930683412307BAAC00B711BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		930683432307BAAC00B711BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					/usr/local/Cellar/sdl2/2.0.10/lib,
+					/usr/local/Cellar/sdl2_ttf/2.0.15/lib,
+				);
+				GCC_WARN_UNUSED_FUNCTION = NO;
+				HEADER_SEARCH_PATHS = (
+					$PROJECT_DIR/../Debugger,
+					$PROJECT_DIR/../Base,
+					$PROJECT_DIR/../Decompiler,
+					/usr/local/Cellar/sdl2/2.0.10/include,
+					/usr/local/Cellar/sdl2_ttf/2.0.15/include,
+					/usr/local/Cellar/sdl2/2.0.10/include/SDL2,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					/usr/local/Cellar/sdl2/2.0.10/lib,
+					/usr/local/Cellar/sdl2_ttf/2.0.15/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		930683442307BAAC00B711BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					/usr/local/Cellar/sdl2/2.0.10/lib,
+					/usr/local/Cellar/sdl2_ttf/2.0.15/lib,
+				);
+				GCC_WARN_UNUSED_FUNCTION = NO;
+				HEADER_SEARCH_PATHS = (
+					$PROJECT_DIR/../Debugger,
+					$PROJECT_DIR/../Base,
+					$PROJECT_DIR/../Decompiler,
+					/usr/local/Cellar/sdl2/2.0.10/include,
+					/usr/local/Cellar/sdl2_ttf/2.0.15/include,
+					/usr/local/Cellar/sdl2/2.0.10/include/SDL2,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+					/usr/local/Cellar/sdl2/2.0.10/lib,
+					/usr/local/Cellar/sdl2_ttf/2.0.15/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		930683362307BAAC00B711BB /* Build configuration list for PBXProject "GBA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				930683402307BAAC00B711BB /* Debug */,
+				930683412307BAAC00B711BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		930683422307BAAC00B711BB /* Build configuration list for PBXNativeTarget "GBA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				930683432307BAAC00B711BB /* Debug */,
+				930683442307BAAC00B711BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 930683332307BAAC00B711BB /* Project object */;
+}

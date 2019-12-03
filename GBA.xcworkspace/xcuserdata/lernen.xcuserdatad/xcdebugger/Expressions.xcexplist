@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "Base::MMU::r32(unsigned int):MMU.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "(address &gt;&gt; 24) &amp; 0xF">
+            </PersistentString>
+            <PersistentString
+               value = "bit_masks[(address &gt;&gt; 24) &amp; 0xF]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "Debugger::Interpreter::executeNextInstruction(bool):Interpreter.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "this-&gt;instruction_trace">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "Decompiler::decompileInstruction(Base::CPU*, unsigned int, bool):GBADecompiler.h">
+      </ContextState>
+      <ContextState
+         contextName = "Base::MMU::r8(unsigned int):MMU.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "address &amp; 0xFFFFFF">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "Debugger::Debugger::printRegisters():Debugger.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "Decompiler::reg_names[15]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
