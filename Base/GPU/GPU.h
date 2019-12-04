@@ -23,7 +23,7 @@ namespace Base {
 
             void update();
             void render(Base::CPU *cpu);
-			void draw_tile(hword palette, byte *data, hword *plt, int screen_x, int screen_y, bool color_depth, bool horizontal_flip, bool vertical_flip);
+			void draw_tile(hword palette, byte *data, hword *plt, int screen_x, int screen_y, bool color_depth, bool horizontal_flip, bool vertical_flip, bool use_palette);
 			void render_background(byte bg);
 
             inline void update_cycles(int num) { cycles += num; }

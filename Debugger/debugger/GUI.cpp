@@ -170,6 +170,9 @@ void Debugger::GUI::start() {
 					fwrite(mDebugger->cpu->mmu->memory[6], 1, 0x18000, f);
 					fclose(f);
 				}
+				else if (e.key.keysym.sym == SDLK_x) {
+					printf("triggering breakpoint...\n");
+				}
             }
         }
         

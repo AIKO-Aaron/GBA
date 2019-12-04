@@ -11,8 +11,10 @@ int main(int argc, char **args) {
 	const uint8_t* keys = SDL_GetKeyboardState(&num);
 
     int counter = 0; // 0x082E062D
-    while(
-		(interpreter->pc().data.reg32 != 0x11d9) && // address
+	while (
+		(interpreter->pc().data.reg32 != 0x03007484) && // address
+		interpreter->cpu->reg(LR).data.reg32 != 0x060000C1 &&
+		(interpreter->cpu->reg(PC).data.reg32 >> 24) != 6 &&
 		!interpreter->cpu->mmu->breakpoint_hit &&  // Write access / Read access
 		interpreter->cpu->r32(interpreter->pc().data.reg32) != 0 &&  // No null bytes executed
 		(interpreter->pc().data.reg32 & 1) == 0 && !keys[SDL_SCANCODE_0]) // Not offset
