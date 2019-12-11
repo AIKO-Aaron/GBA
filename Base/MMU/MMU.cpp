@@ -170,7 +170,7 @@ void Base::MMU::dma_transfer(hword cntrl, word src, word dst, word num) {
 	byte src_step = (cntrl >> 7) & 3;
 	byte dst_step = (cntrl >> 5) & 3;
 
-	printf("DMA: cntrl = %.04X from %.08X to %.08X with %.08X words\n", cntrl, src, dst, num);
+	//printf("DMA: cntrl = %.04X from %.08X to %.08X with %.08X words\n", cntrl, src, dst, num);
 
 	if (cntrl & (1 << 10)) {
 		for (unsigned int i = 0; i < num; i++) {

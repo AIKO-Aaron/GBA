@@ -61,14 +61,17 @@ void Debugger::VRAM_GUI::render_background(byte bg) {
     //if(i++ % 100 == 0) randValue++;
 }
 
+static int rendered_tiles = 0;
+
 void Debugger::VRAM_GUI::render_tile(byte tile) {
+
+
 	hword* palette_bg = (hword*)(cpu->mmu->memory[5]);
-	byte* vram_data = cpu->mmu->memory[6];
+	byte* vram_data = cpu->mmu->memory[6] + 0x00010000;
 	bool color_depth = false;
 
 	byte bg_mode = (cpu->r16(0x04000000)) & 7;
 	bool use_palette = bg_mode < 3;
-	if(bg_mode) printf("BG mode is: %.02X\n", bg_mode);
 
 	word off = tile * 32;
 	byte* data = vram_data + off;
@@ -83,7 +86,7 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 				if (!use_palette || a) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
 
-					r.x = x * 4 + tile * 32;
+					r.x = x * 4 + rendered_tiles * 32;
 					r.y = y * 4;
 					SDL_RenderFillRect(renderer, &r);
 				}
@@ -95,20 +98,22 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 				hword color = use_palette ? palette_bg[b1] : b1;
 				if (!use_palette || (a & 0xF)) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					r.x = (x * 2 + 0) * 4 + tile * 32;
+					r.x = (x * 2 + 0) * 4 + rendered_tiles * 32;
 					r.y = (y) * 4;
 					SDL_RenderFillRect(renderer, &r);
 				}
 				color = use_palette ? palette_bg[b2] : b2;
 				if (!use_palette || (a >> 4)) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					r.x = (x * 2 + 1) * 4 + tile * 32;
+					r.x = (x * 2 + 1) * 4 + rendered_tiles * 32;
 					r.y = (y) * 4;
 					SDL_RenderFillRect(renderer, &r);
 				}
 			}
 		}
 	}
+
+	++rendered_tiles;
 }
 
 void Debugger::VRAM_GUI::render() {
@@ -126,7 +131,8 @@ void Debugger::VRAM_GUI::render() {
 
     //for(int i = 0; i < 4; i++) render_background(i);
 
-	for(int i = 0; i < 10; i++)	render_tile(i);
+	rendered_tiles = 0;
+	for(int i = 0; i < 16; i++)	render_tile(i);
 
 	SDL_RenderPresent(renderer);
 }

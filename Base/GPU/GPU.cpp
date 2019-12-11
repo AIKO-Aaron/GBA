@@ -1,8 +1,22 @@
 #include "GPU.h"
 #include "../CPU/CPU.h"
 
-#define SCALE 5
+#define SCALE 1
 
+
+static const byte* width_table = new const byte[16] {
+	1, 2, 4, 8,
+	2, 4, 4, 8,
+	1, 1, 2, 4,
+	0xFF, 0xFF, 0xFF, 0xFF
+};
+
+static const byte* height_table = new const byte[16]{
+	1, 2, 4, 8,
+	1, 1, 2, 4,
+	2, 4, 4, 8,
+	0xFF, 0xFF, 0xFF, 0xFF
+};
 
 #define MULTI_THREAD
 
@@ -74,7 +88,15 @@ inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_of
 
 inline void Base::GPU::render_background(byte bg) {
 	hword bg_mode = mmu->memory[4][0] & 7;
-	if (bg_mode) printf("bg mode is %.02X\n", bg_mode);
+	// if (bg_mode) printf("bg mode is %.02X\n", bg_mode);
+
+	byte mode = bg_mode < 2 || (bg_mode == 2 && bg < 2); // true if we're in text mode, false otherwise
+
+	if (mode) return;
+
+	if (bg_mode == 1 && bg == 3) return; // No background 3 in bg mode 1
+	if (bg_mode == 2 && bg < 2) return; // no bg 0 & 1 in bg mode 2
+	if (bg_mode > 2 && bg != 2) return; // only bg 2 in bg modes above 2
 
 	hword cntrl = *(hword*) (&mmu->memory[4][8 + 2 * (int) bg]);
 	byte size = (cntrl >> 14) & 0x3;
@@ -90,8 +112,6 @@ inline void Base::GPU::render_background(byte bg) {
 
 	word base_off = (cntrl >> 8) & 0x1F;
 	word start_addr = base_off * 0x800;
-	
-
 
 	for (int i = 0; i < 32 * 32 * (size > 0 ? 2 : 1) * (size == 3 ? 2 : 1); i++) {
 		hword data;
@@ -169,15 +189,18 @@ void Base::GPU::render(Base::CPU *cpu) {
 
     // printf("Dispcnt: %.04X\n", dispcnt);
 
-	for (int i = 3; i >= 0; i--) {
-		if (dispcnt & 0x0100 && (bg0_cnt & 3) == i) render_background(0);
-		if (dispcnt & 0x0200 && (bg1_cnt & 3) == i) render_background(1);
-		if (dispcnt & 0x0400 && (bg2_cnt & 3) == i) render_background(2);
-		if (dispcnt & 0x0800 && (bg3_cnt & 3) == i) render_background(3);
-	}
-
     bool force_blank = (dispcnt & 0x80);
     force_blank = false;
+
+	/*if (!force_blank) {
+		for (int i = 3; i >= 0; i--) {
+			if (dispcnt & 0x0100 && (bg0_cnt & 3) == i) render_background(0);
+			if (dispcnt & 0x0200 && (bg1_cnt & 3) == i) render_background(1);
+			if (dispcnt & 0x0400 && (bg2_cnt & 3) == i) render_background(2);
+			if (dispcnt & 0x0800 && (bg3_cnt & 3) == i) render_background(3);
+		}
+	}*/
+
 
     for(int index = 0; index < 128 && !force_blank; index++) {
         hword attrib0 = cpu->r16(0x07000000 + index * 8);
@@ -189,90 +212,43 @@ void Base::GPU::render(Base::CPU *cpu) {
         byte mode = (attrib0 >> 10) & 0x3;
 
         if(rotscal) {
-            
-        }
+			printf("I think you didn't implement it yet..\n");
+			continue;
+		}
+		//else if(attrib0 & (1 << 9)) continue;
 
 
-        byte shape = attrib0 >> 14;
-        byte size = attrib1 >> 14;
+        byte shape = (attrib0 >> 14) & 3;
+        byte size = (attrib1 >> 14) & 3;
 
         word x = (attrib1 & 0x1FF), y = (attrib0 & 0xFF), w, h;
 
         if(y & 0x80) y |= 0xFFFFFF00;
         if(x & 0x100) x |= 0xFFFFFE00;
 
-        switch(shape) {
-            case 0:
-                w = 8 * (1 << size);
-                h = 8 * (1 << size);
-                break;
-            case 1:
-                w = 16 * (1 << size);
-                h = 8 * (1 << (size > 0 ? size - 1 : 0));
-                break;
-            case 2:
-                w = 8 * (1 << (size > 0 ? size - 1 : 0));
-                h = 16 * (1 << size);
-                break;
-            default:
-                //printf("What should this be (GPU -> Obj with size 3)\n");
-                //exit(0);
+		w = width_table[shape * 4 + size];
+		h = height_table[shape * 4 + size];
 
-				continue;
+		if (shape == 3) {
+			printf("What?\n");
+			continue;
+		}
 
-				w = 8 * (1 << size);
-				h = 8 * (1 << size);
-				break;
-        }
+        bool depth = (attrib0 & (1 << 13));
+        word name = attrib2 & 0x3FF;
 
-        int pt_size = double_size ? 2 : 1;
-        w *= pt_size;
+		if (!one_d_mapping) name &= 0xFFFFFFFE;
 
-        /*if(index == 0){
-            printf("Attrib 0: %.04X, Attrib1: %.04X, attrib2: %.04X\n", attrib0, attrib1, attrib2);
-            printf("\tRendering Obj with (%.02X, %.02X, %.02X, %.02X)\n\n", x, y, w, h);
-        }*/
-        byte depth = (attrib0 & 0x2000) ? 8 : 4;
-        byte factor = depth / 4;
-        hword name = attrib2 & 0x3FF;
-
-        for(word yc = 0; yc < h / 8; yc++) {
-            for(word xc = 0; xc < w / 8 / factor; xc++) {
-                for(byte j = 0; j < 8; j++) {
-                    for(int i = 0; i < depth; i++) {
-                        word offset = 0;
-                        if(one_d_mapping) offset = name * 32 + i + factor * (xc * 32 + j * 4 + yc * w * 32);
-                        else offset = name * 32 + i + factor * (xc * 32 + j * 4 + yc * 128 * 4);
-
-                        // if(index == 7 && dispcnt != 0x1002) printf("Dispcntrl: %.08X\n", dispcnt);
-                  
-                        if(depth == 4) {
-                            int a = ((attrib2 >> 8) & 0xF0) | (cpu->r8(0x06010000 + offset) & 0xF);
-                            int b = ((attrib2 >> 8) & 0xF0) | (cpu->r8(0x06010000 + offset) >> 4);
-                            //if(mode == 1 && !a) a = 1;
-                            //if(mode == 1 && !b) b = 1;
-
-
-                            hword color = palette_obj[a];
-                            SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-                            if(a) SDL_RenderDrawPoint(renderer, (int) x + xc * 8 + i * 2 + 0, (int) y + yc * 8 + j);
-							color = palette_obj[b];
-							SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-                            if(b) SDL_RenderDrawPoint(renderer, (int) x + xc * 8 + i * 2 + 1, (int) y + yc * 8 + j);
-                        } else {
-                            int ind = cpu->r8(0x06010000 + offset);
-                            //if(mode == 1 && !ind) ind = 1;
-                            hword color = palette_obj[ind];
-                            SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-
-							if(ind) SDL_RenderDrawPoint(renderer, (int) x + xc * 8 + i, (int) y + yc * 8 + j);
-                        }
-                    }
-                }
+        for(word yc = 0; yc < h; yc++) {
+            for(word xc = 0; xc < w; xc++) {
+				word xc2 = depth ? (xc * 2) : xc;
+				word tile_index = name + (one_d_mapping ? (xc2 + yc * w) : (xc2 + yc * 32));
+				byte* data = &(mmu->memory[6][(bg_mode < 3 ? 0x00010000 : 0x00014000) + tile_index * 32]);
+				draw_tile((attrib2 >> 12) & 0xF, data, palette_obj, x + xc * 8, y + yc * 8, depth, attrib1 & (1 << 13), attrib1 & (1 << 12), true);
             }
         }
     }
 
 	//printf("Frame %d\n", frame_num++);
-    SDL_RenderPresent(renderer);
+	SDL_RenderPresent(renderer);
 }
