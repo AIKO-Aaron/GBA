@@ -185,6 +185,7 @@ void Debugger::execute_thumb(hword instruction, Base::CPU *cpu) {
                         word res = cpu->r16(addr);
                         res |= ((res & 0x8000) ? 0xFFFF0000 : 0x00000000);
                         cpu->reg(instruction & 0x7).data.reg32 = res;
+                        //printf("Loaded halfword from %.08X (=%.04X)\n", addr, res);
                     } else {
                         word res = cpu->r8(addr);
                         res |= ((res & 0x80) ? 0xFFFFFF00 : 0x00000000);

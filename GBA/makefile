@@ -2,7 +2,7 @@ CXX=g++
 INCLUDE=-I"../Base/" -I"../Decompiler/" -I"../Debugger/" -I"../GBA/" -I"../libs/include"
 LD=g++
 LIBS=-L$(shell pwd)/../bin -L"../libs/lib" -lDebugger -lDecompiler -lBase -lSDL2 -lSDL2_ttf
-OBJS=GBA/main.o
+OBJS=GBA/tests.o GBA/main.o
 
 all: ../bin/gba
 

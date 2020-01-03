@@ -4,6 +4,10 @@ Debugger::Debugger::Debugger() {
     cpu = new Base::CPU();
 }
 
+Debugger::Debugger::Debugger(Base::CPU* _cpu) : cpu(_cpu) {
+
+}
+
 Debugger::Debugger::~Debugger() {
     delete cpu;
 }

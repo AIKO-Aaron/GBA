@@ -72,7 +72,7 @@ void Debugger::GUI::renderFlags() {
 }
 
 Debugger::GUI::GUI(Debugger *debugger) : mDebugger(debugger) {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO);
     TTF_Init();
     
     font = TTF_OpenFont("Raleway-Regular.ttf", 18);

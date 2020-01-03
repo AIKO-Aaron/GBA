@@ -1,8 +1,20 @@
 #include "VRAM_GUI.h"
 
+TTF_Font* vram_font = nullptr;
+const char* chars_[16] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "F" };
+SDL_Texture** hex_chars = new SDL_Texture * [16];
+
 Debugger::VRAM_GUI::VRAM_GUI(Base::CPU *_cpu) : cpu(_cpu) {
     window = SDL_CreateWindow("VRAM", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 512, 512, 0);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+	vram_font = TTF_OpenFont("Raleway-Regular.ttf", 18);
+	SDL_Color col = { 0xFF, 0x00, 0xFF, 0xFF };
+	for (int i = 0; i < 16; i++) {
+		SDL_Surface* s = TTF_RenderText_Solid(vram_font, chars_[i], col);
+		hex_chars[i] = SDL_CreateTextureFromSurface(renderer, s);
+		SDL_FreeSurface(s);
+	}
 }
 
 static int i = 0;
@@ -67,7 +79,7 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 
 
 	hword* palette_bg = (hword*)(cpu->mmu->memory[5]);
-	byte* vram_data = cpu->mmu->memory[6] + 0x00010000;
+	byte* vram_data = cpu->mmu->memory[6] + 0x0001E000;
 	bool color_depth = false;
 
 	byte bg_mode = (cpu->r16(0x04000000)) & 7;
@@ -76,7 +88,10 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 	word off = tile * 32;
 	byte* data = vram_data + off;
 
-	SDL_Rect r = {0, 0, 4, 4};
+	SDL_Rect r = {0, 0, color_depth ? 4 : 2, 4};
+
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
+	SDL_RenderDrawPoint(renderer, (rendered_tiles % 16) * 32, (rendered_tiles / 16) * 32);
 
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < (color_depth ? 8 : 4); x++) {
@@ -86,8 +101,8 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 				if (!use_palette || a) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
 
-					r.x = x * 4 + rendered_tiles * 32;
-					r.y = y * 4;
+					r.x = x * 4 + (rendered_tiles % 16) * 32;
+					r.y = y * 4 + (rendered_tiles / 16) * 32;
 					SDL_RenderFillRect(renderer, &r);
 				}
 			}
@@ -98,15 +113,15 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 				hword color = use_palette ? palette_bg[b1] : b1;
 				if (!use_palette || (a & 0xF)) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					r.x = (x * 2 + 0) * 4 + rendered_tiles * 32;
-					r.y = (y) * 4;
+					r.x = (x * 2 + 0) * 4 + (rendered_tiles % 16) * 32;
+					r.y = (y) * 4 + (rendered_tiles / 16) * 32;
 					SDL_RenderFillRect(renderer, &r);
 				}
 				color = use_palette ? palette_bg[b2] : b2;
 				if (!use_palette || (a >> 4)) {
 					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					r.x = (x * 2 + 1) * 4 + rendered_tiles * 32;
-					r.y = (y) * 4;
+					r.x = (x * 2 + 1) * 4 + (rendered_tiles % 16) * 32;
+					r.y = (y) * 4 + (rendered_tiles / 16) * 32;
 					SDL_RenderFillRect(renderer, &r);
 				}
 			}
@@ -114,6 +129,39 @@ void Debugger::VRAM_GUI::render_tile(byte tile) {
 	}
 
 	++rendered_tiles;
+}
+
+void Debugger::VRAM_GUI::render_memory(word start, int len) {
+	SDL_Rect dst = {0, 20};
+
+	int w, h, access;
+	unsigned int frmt;
+
+	for (int i = 0; i < len; i++) {
+		byte d = cpu->mmu->r8(start + i);
+		byte first_digit = d / 16;
+		byte second_digit = d % 16;
+
+		SDL_Texture* fd = hex_chars[first_digit];
+		SDL_Texture* sd = hex_chars[second_digit];
+
+		SDL_QueryTexture(fd, &frmt, &access, &w, &h);
+		dst.w = w;
+		dst.h = h;
+		SDL_RenderCopy(renderer, fd, NULL, &dst);
+		dst.x += w;
+
+		SDL_QueryTexture(sd, &frmt, &access, &w, &h);
+		dst.w = w;
+		dst.h = h;
+		SDL_RenderCopy(renderer, sd, NULL, &dst);
+		dst.x += w + 10;
+
+		if (i % 16 == 15) {
+			dst.x = 0;
+			dst.y += h;
+		}
+	}
 }
 
 void Debugger::VRAM_GUI::render() {
@@ -132,7 +180,9 @@ void Debugger::VRAM_GUI::render() {
     //for(int i = 0; i < 4; i++) render_background(i);
 
 	rendered_tiles = 0;
-	for(int i = 0; i < 16; i++)	render_tile(i);
+	//for(int i = 0; i < 16 * 16; i++)	render_tile(i);
+
+	render_memory(0x02021730, 0x40);
 
 	SDL_RenderPresent(renderer);
 }

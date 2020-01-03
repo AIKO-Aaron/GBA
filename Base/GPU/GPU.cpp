@@ -92,7 +92,7 @@ inline void Base::GPU::render_background(byte bg) {
 
 	byte mode = bg_mode < 2 || (bg_mode == 2 && bg < 2); // true if we're in text mode, false otherwise
 
-	if (mode) return;
+	//if (mode) return;
 
 	if (bg_mode == 1 && bg == 3) return; // No background 3 in bg mode 1
 	if (bg_mode == 2 && bg < 2) return; // no bg 0 & 1 in bg mode 2
@@ -167,7 +167,7 @@ void Base::GPU::render(Base::CPU *cpu) {
         } else if(e.type == SDL_KEYDOWN) {
             if(e.key.keysym.sym == SDLK_ESCAPE) exit(0);
             else if(e.key.keysym.sym == SDLK_r) cpu->pc().data.reg32 = 0;
-            else if(e.key.keysym.sym == SDLK_b) cpu->pc().data.reg32 += 1;
+            //else if(e.key.keysym.sym == SDLK_b) cpu->pc().data.reg32 += 1;
         }
     }
 
@@ -192,14 +192,14 @@ void Base::GPU::render(Base::CPU *cpu) {
     bool force_blank = (dispcnt & 0x80);
     force_blank = false;
 
-	/*if (!force_blank) {
+	if (!force_blank) {
 		for (int i = 3; i >= 0; i--) {
 			if (dispcnt & 0x0100 && (bg0_cnt & 3) == i) render_background(0);
 			if (dispcnt & 0x0200 && (bg1_cnt & 3) == i) render_background(1);
 			if (dispcnt & 0x0400 && (bg2_cnt & 3) == i) render_background(2);
 			if (dispcnt & 0x0800 && (bg3_cnt & 3) == i) render_background(3);
 		}
-	}*/
+	}
 
 
     for(int index = 0; index < 128 && !force_blank; index++) {
@@ -212,7 +212,7 @@ void Base::GPU::render(Base::CPU *cpu) {
         byte mode = (attrib0 >> 10) & 0x3;
 
         if(rotscal) {
-			printf("I think you didn't implement it yet..\n");
+			//printf("I think you didn't implement it yet..\n");
 			continue;
 		}
 		//else if(attrib0 & (1 << 9)) continue;
@@ -239,11 +239,17 @@ void Base::GPU::render(Base::CPU *cpu) {
 
 		if (!one_d_mapping) name &= 0xFFFFFFFE;
 
+		//printf("Rendering tile with name: %.08X\n", name);
+
         for(word yc = 0; yc < h; yc++) {
             for(word xc = 0; xc < w; xc++) {
-				word xc2 = depth ? (xc * 2) : xc;
+				word xc2 = depth ? (xc*2) : xc;
 				word tile_index = name + (one_d_mapping ? (xc2 + yc * w) : (xc2 + yc * 32));
-				byte* data = &(mmu->memory[6][(bg_mode < 3 ? 0x00010000 : 0x00014000) + tile_index * 32]);
+
+				//if (xc || yc) continue;
+				
+				byte* data = &(mmu->memory[6][(bg_mode < 3 ? 0x00010000 : 0x00014000) + tile_index * (depth ? 32 : 32)]);
+
 				draw_tile((attrib2 >> 12) & 0xF, data, palette_obj, x + xc * 8, y + yc * 8, depth, attrib1 & (1 << 13), attrib1 & (1 << 12), true);
             }
         }

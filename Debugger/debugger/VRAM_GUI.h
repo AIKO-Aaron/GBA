@@ -18,5 +18,6 @@ namespace Debugger {
         void render();
         void render_background(byte bg);
 		void render_tile(byte num);
+        void render_memory(word start, int len);
     };
 }

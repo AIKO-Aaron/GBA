@@ -25,7 +25,7 @@ namespace Base {
 
         inline void update_gpu() { 
 			gpu->update();
-            timers->update();
+			timers->update();
 
 			if(pc().data.reg32 == 0x0000013C) {
 

@@ -135,6 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Audio\Audio.h" />
     <ClInclude Include="Base\DataTypes.h" />
     <ClInclude Include="Base\FileReader.h" />
     <ClInclude Include="Base\Logic.h" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Timers\Timers.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Audio\Audio.cpp" />
     <ClCompile Include="Base\Logic.cpp" />
     <ClCompile Include="CPU\CPU.cpp" />
     <ClCompile Include="GPU\GPU.cpp" />

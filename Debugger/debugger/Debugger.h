@@ -10,6 +10,7 @@ namespace Debugger {
         
 	public:
         Debugger();
+        Debugger(Base::CPU *_cpu);
         ~Debugger();
 
         Base::CPU *cpu = nullptr;

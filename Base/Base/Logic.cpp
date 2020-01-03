@@ -85,7 +85,7 @@ word Base::shift(byte data, word reg, Base::CPU *cpu, bool set_cond) {
 			}
 			carryOut = result & (1 << (amt - 1));
 			result >>= amt;
-			if(reg >> 31) result |= (0xFFFFFFFF << (31 - amt));
+			if(reg >> 31) result |= (0xFFFFFFFF << (32 - amt));
 			break;
 		case 3: // rotate right
 			if(amt == 0) { // RRX

@@ -18,6 +18,7 @@ namespace Debugger {
         
 	public:
         Interpreter();
+        Interpreter(Base::CPU *_cpu);
         ~Interpreter();
 		
 		Base::Register &pc() { return cpu->pc(); }

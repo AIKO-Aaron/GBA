@@ -158,10 +158,10 @@ std::string Decompiler::decompileTHUMB(hword instruction, Base::CPU *cpu, bool p
 
                 disassembled = disassembled + " " + reg_names[(instruction & 0x7)] + ", [" + reg_names[(instruction >> 3) & 0x7] + ", #" + int_to_hex(off, 0) + "]";
             } else if(instruction & 0x0200) {
-                if((instruction & 0x0C00) == 0x0C00) disassembled = std::string("STRH ");
+                if((instruction & 0x0C00) == 0x0C00) disassembled = std::string("LDSH ");
                 else if(instruction & 0x0800) disassembled = std::string("LDRH ");
                 else if(instruction & 0x0400) disassembled = std::string("LDSB ");
-                else disassembled = std::string("LDSH ");
+                else disassembled = std::string("STRH ");
 
                 disassembled = disassembled + reg_names[(instruction & 0x7)] + ", [" + reg_names[(instruction >> 3) & 0x7] + ", " + reg_names[(instruction >> 6) & 0x7] + "]";
             } else {

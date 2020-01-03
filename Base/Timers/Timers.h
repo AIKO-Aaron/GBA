@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../MMU/MMU.h"
+#include "../Audio/Audio.h"
 
 namespace Base {
     
@@ -12,7 +13,7 @@ namespace Base {
     public:
         Timers(MMU* m) : mmu(m) {}
         
-        word t0_reload = 0, t1_reload = 0, r2_reload = 0, t3_reload = 0;
+        word t0_reload = 0, t1_reload = 0, t2_reload = 0, t3_reload = 0;
         
         void add_cycles(int num) {
             if(mmu->r8(0x4000102) & 0x80) t0 += num;
