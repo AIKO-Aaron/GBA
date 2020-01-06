@@ -1,7 +1,7 @@
 #include "GPU.h"
 #include "../CPU/CPU.h"
 
-#define SCALE 1
+#define SCALE 5
 
 
 static const byte* width_table = new const byte[16] {
@@ -201,7 +201,7 @@ void Base::GPU::render(Base::CPU *cpu) {
 		}
 	}
 
-
+	force_blank = false;
     for(int index = 0; index < 128 && !force_blank; index++) {
         hword attrib0 = cpu->r16(0x07000000 + index * 8);
         hword attrib1 = cpu->r16(0x07000002 + index * 8);
@@ -255,6 +255,14 @@ void Base::GPU::render(Base::CPU *cpu) {
         }
     }
 
-	//printf("Frame %d\n", frame_num++);
+	if(std::chrono::high_resolution_clock::now() - start >= std::chrono::seconds(1)) {
+		printf("FPS %d\n", fps);
+		start = std::chrono::high_resolution_clock::now();
+		fps = 0;
+	}
+
+	++fps;
+
+	// printf("Frame %d\n", frame_num++);
 	SDL_RenderPresent(renderer);
 }

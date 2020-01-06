@@ -3,6 +3,8 @@
 #include "../MMU/MMU.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <chrono>
+#include <time.h>
 
 namespace Base {
     class CPU;
@@ -17,6 +19,10 @@ namespace Base {
             int cycles = 0;
             int x_dot = 0, y_dot = 0;
             hword default_colors[240 * 160];
+
+            word fps = 0;
+
+            std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
         public:
             GPU(Base::MMU *mmu);

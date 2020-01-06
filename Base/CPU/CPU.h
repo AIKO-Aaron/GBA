@@ -38,7 +38,11 @@ namespace Base {
 			hword _ie = r16(0x04000200);
 			hword interrupts = _if & _ie;
 
-			if(interrupts_enabled && interrupts && irq_enabled) {			
+			if(interrupts_enabled && interrupts && irq_enabled) {	
+
+				if(interrupts & 1) mmu->on_vblank();
+				if(interrupts & 2) mmu->on_hblank();				
+
 				word old_cpsr = (*set)[CPSR].data.reg32;
 				set->setRegisterBank(MODE_IRQ);
 				(*set)[LR].data.reg32 = (*set)[PC].data.reg32 + 4; // Return address				

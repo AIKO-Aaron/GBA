@@ -29,6 +29,7 @@ int start_game(int argc, char **args) {
 	{
         interpreter->executeNextInstruction(false);
 
+        if(++counter >= 280896) {
 		interpreter->cpu->mmu->button_a = keys[SDL_SCANCODE_W];
 		interpreter->cpu->mmu->button_b = keys[SDL_SCANCODE_KP_PERIOD];
 		interpreter->cpu->mmu->button_start = keys[SDL_SCANCODE_E];
@@ -38,9 +39,8 @@ int start_game(int argc, char **args) {
 		interpreter->cpu->mmu->button_left = keys[SDL_SCANCODE_LEFT];
 		interpreter->cpu->mmu->button_right = keys[SDL_SCANCODE_RIGHT];
 
-        if(++counter >= 280896) {
-            counter = 0;
-            interpreter->cpu->render();
+        	counter = 0;
+        	interpreter->cpu->render();
         }
     }
     

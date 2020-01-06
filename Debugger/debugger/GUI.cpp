@@ -162,7 +162,11 @@ void Debugger::GUI::start() {
                 }
 				else if (e.key.keysym.sym == SDLK_KP_ENTER) {
 					FILE* f;
+#if defined(__APPLE__) or defined(__linux__)
+					f = fopen("hexdump.bin", "wb");
+#else
 					fopen_s(&f, "hexdump.bin", "wb");
+#endif
 					if (!f) {
 						printf("Could not create file...\n");
 						continue;

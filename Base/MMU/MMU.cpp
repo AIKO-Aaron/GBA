@@ -4,7 +4,7 @@
 
 Base::MMU::MMU() {
 	bios = Base::readFile("bios.gba").data; //(byte*) malloc(0x4000);
-	filedata cartridge_full = Base::readFile("emerald.gba");
+	filedata cartridge_full = Base::readFile("firered.gba");
     cart = cartridge_full.data;
     
 	wram_1 = (byte*) malloc(0x40000);
@@ -36,15 +36,13 @@ Base::MMU::MMU() {
 	memory[0x6] = vram;
 	memory[0x7] = oam;
 	memory[0xE] = flash_memory;
-	
+	memory[0xF] = null_page;
 
 	for(word i = 0; i < 6; i++) {
 		memory[0x8 + i] = cartridge_full.size >= 0x1000000u * i ? cart + 0x1000000u * i : null_page;
 		word size = cartridge_full.size - 0x1000000u * i;
 		bit_masks[0x8 + i] = cartridge_full.size >= 0x1000000u * i ? (size >= 0x1000000u ? 0x1000000u : size) : 1u; 
 	}
-
-
 
 	bit_masks[0] = 0x4000;
 	bit_masks[1] = 0x00000000 + 1;
@@ -55,6 +53,7 @@ Base::MMU::MMU() {
 	bit_masks[6] = 0x00017FFF + 1;
 	bit_masks[7] = 0x000003FF + 1;
 	bit_masks[0xE] = 0x00010000;
+	bit_masks[0xF] = 0;
 
 	// Default values for IO:
 	w32(0x04000088, 0x200);	
@@ -117,6 +116,8 @@ bool Base::MMU::flash_check(word address, word value) {
 		switch (value) {
 		case 0x10:
 			printf("Erase entire chip command...\n");
+			for(int i = 0; i < 0x100000; i++) flash_memory[i] = 0xFF;
+			w8(0x0E000000, 0xFF);
 			break;
 		case 0x30:
 			printf("Erase sector command...\n");
@@ -146,8 +147,10 @@ bool Base::MMU::flash_check(word address, word value) {
 	else if (change_bank && address == 0x0E000000) {
 		change_bank = false;
 		memory[0xE] = flash_memory + (0x10000 * value);
+		return false;
 	}
-	else printf("Wrote %.08X to %.08X in flash\n", value, address);
+	
+	printf("Wrote %.08X to %.08X in flash\n", value, address);
 
 	return old_stage != flash_cmd_stage;
 }
@@ -269,49 +272,71 @@ void Base::MMU::timer_dma(bool is_timer_1) {
 
 }
 
+byte dma_on_hblank = 0, dma_on_vblank = 0;
+
+void Base::MMU::start_dma(byte dma) {
+	word cntrl = r8(0x040000BA + 0xC * dma) | (r8(0x040000BB + 0xC * dma) << 8);
+
+	word src_addr = r32(0x040000B0 + 0xC * dma) & 0x0FFFFFFF;
+	word dst_addr = r32(0x040000B4 + 0xC * dma) & 0x0FFFFFFF;
+	word num_transfers = r16(0x040000B8 + 0xC * dma) & 0x3FFF;
+	if (!num_transfers) num_transfers = dma == 3 ? 0x10000 : 0x4000;
+
+	dma_transfer(cntrl, src_addr, dst_addr, num_transfers);
+	w8(0x040000BB + 0xC * dma, cntrl & 0x7F);
+
+	dma_on_hblank &= (1 << dma);
+	dma_on_vblank &= (1 << dma);
+}
+
+void Base::MMU::on_hblank() {
+	if(dma_on_hblank & 1) start_dma(0);
+	if(dma_on_hblank & 2) start_dma(1);
+	if(dma_on_hblank & 4) start_dma(2);
+	if(dma_on_hblank & 8) start_dma(3);
+}
+
+void Base::MMU::on_vblank() {
+	if(dma_on_vblank & 1) start_dma(0);
+	if(dma_on_vblank & 2) start_dma(1);
+	if(dma_on_vblank % 4) start_dma(2);
+	if(dma_on_vblank & 8) start_dma(3);
+}
+
 void Base::MMU::check_stuff(word address, word value) {
     if(address == 0x040000BB && (value & 0x80)) {
 		word cntrl = r8(0x040000BA) | (value << 8);
-		word src_addr = r32(0x040000B0) & 0x0FFFFFFF;
-		word dst_addr = r32(0x040000B4) & 0x0FFFFFFF;
-		hword num_transfers = r16(0x040000B8) & 0x3FFF;
-		if (!num_transfers) num_transfers = 0x4000;
 
-		dma_transfer(cntrl, src_addr, dst_addr, num_transfers);
-		w8(address, value & 0x7F);
+		byte start = (cntrl >> 12) & 3;
+		if(!start) start_dma(0);
+		else if(start == 1) dma_on_vblank |= 1;
+		else if(start == 2) dma_on_hblank |= 1;
     }
     if(address == 0x040000C7 && (value & 0x80)) {
 		word cntrl = r8(0x040000C6) | (value << 8);
-		word src_addr = r32(0x040000BC) & 0x0FFFFFFF;
-		word dst_addr = r32(0x040000C0) & 0x0FFFFFFF;
-		hword num_transfers = r16(0x040000C4) & 0x3FFF;
-		if (!num_transfers) num_transfers = 0x4000;
+		byte start = (cntrl >> 12) & 3;
 
-		dma_transfer(cntrl, src_addr, dst_addr, num_transfers);
-		w8(address, value & 0x7F);
+		if(!start || start == 3) start_dma(1);
+		else if(start == 1) dma_on_vblank |= 2;
+		else if(start == 2) dma_on_hblank |= 2;
     }
     if(address == 0x040000D3 && (value & 0x80)) {
 		word cntrl = r8(0x040000D2) | (value << 8);
-		word src_addr = r32(0x040000C8) & 0x0FFFFFFF;
-		word dst_addr = r32(0x040000CC) & 0x0FFFFFFF;
-		hword num_transfers = r16(0x040000D0) & 0x3FFF;
-		if (!num_transfers) num_transfers = 0x4000;
+		byte start = (cntrl >> 12) & 3;
 
-		dma_transfer(cntrl, src_addr, dst_addr, num_transfers);
-		w8(address, value & 0x7F);
+		if(!start || start == 3) start_dma(2);
+		else if(start == 1) dma_on_vblank |= 4;
+		else if(start == 2) dma_on_hblank |= 4;
     }
     if(address == 0x040000DF && (value & 0x80)) {
 		word cntrl = r8(0x040000DE) | (value << 8);
-		word src_addr = r32(0x040000D4) & 0x0FFFFFFF;
-		word dst_addr = r32(0x040000D8) & 0x0FFFFFFF;
-		word num_transfers = r16(0x040000DC);
-		if (!num_transfers) num_transfers = 0x10000;
+		byte start = (cntrl >> 12) & 3;
 
-		dma_transfer(cntrl, src_addr, dst_addr, num_transfers);
-		w8(address, value & 0x7F);
+		if(!start) start_dma(3);
+		else if(start == 1) dma_on_vblank |= 8;
+		else if(start == 2) dma_on_hblank |= 8;
     }
     
-    // if(address == 0x04000200 || address == 0x04000201) printf("Wrote to IE register: %.04X\n", r16(0x04000200));
 	if (address == 0x02021738 && value == 0x9c) {
 		breakpoint_hit = true;
 		printf("Hit write breakpoint for the stupid crash\n");

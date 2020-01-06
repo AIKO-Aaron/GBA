@@ -13,7 +13,7 @@ namespace Base {
 	static filedata readFile(const char *path) {
 		FILE *f = nullptr;
 		
-#ifdef __APPLE__
+#if defined(__APPLE__) or defined(__linux__)
 		f = fopen(path, "rb");
 #else
 		fopen_s(&f, path, "rb");

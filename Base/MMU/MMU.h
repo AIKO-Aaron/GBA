@@ -35,6 +35,7 @@ namespace Base {
 		friend class Timers;
 		void dma_transfer(hword cntrl, word start, word end, word num);
 		void timer_dma(bool is_timer_1);
+		void start_dma(byte dma);
 		
 		// Flash stuff
 		bool flash_check(word address, word value);
@@ -53,6 +54,9 @@ namespace Base {
 
 		bool button_a = false, button_b = false, button_select = false, button_start = false, button_up = false, button_down = false, button_left = false, button_right = false;
 		bool breakpoint_hit = false;
+
+		void on_hblank();
+		void on_vblank();
 
 		MMU(MMU &mmu);
 		int i = 0;
@@ -85,7 +89,6 @@ namespace Base {
         
 		inline void w16(word address, hword val) {
 			if(address < 0x02000000 || ((address >> 24) == 0x8)) return;
-			if(((address >> 24) & 0xF) == 0xE) if(flash_check(address, val)) return;
 			*(hword*)(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF])) = val;
             
 			check_stuff(address, val);
@@ -94,7 +97,6 @@ namespace Base {
 
         inline void w32(word address, word val) {
 			if(address < 0x02000000 || ((address >> 24) == 0x8)) return;
-			if (((address >> 24) & 0xF) == 0xE) if (flash_check(address, val)) return;
 			*(word*)(memory[(address >> 24) & 0xF] + (address % bit_masks[(address >> 24) & 0xF])) = val;
             check_stuff(address, val);
             check_stuff(address + 1, val >> 8);
