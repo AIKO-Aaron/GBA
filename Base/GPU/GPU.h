@@ -18,9 +18,12 @@ namespace Base {
 			byte bg_mode = 0;
             int cycles = 0;
             int x_dot = 0, y_dot = 0;
-            hword default_colors[240 * 160];
 
             word fps = 0;
+
+            word screen_buffer[240 * 160];
+            SDL_Surface *screen_image;
+            SDL_Texture *screen_texture;
 
             std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 

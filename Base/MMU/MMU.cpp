@@ -4,7 +4,7 @@
 
 Base::MMU::MMU() {
 	bios = Base::readFile("bios.gba").data; //(byte*) malloc(0x4000);
-	filedata cartridge_full = Base::readFile("firered.gba");
+	filedata cartridge_full = Base::readFile("emerald.gba");
     cart = cartridge_full.data;
     
 	wram_1 = (byte*) malloc(0x40000);
@@ -283,10 +283,10 @@ void Base::MMU::start_dma(byte dma) {
 	if (!num_transfers) num_transfers = dma == 3 ? 0x10000 : 0x4000;
 
 	dma_transfer(cntrl, src_addr, dst_addr, num_transfers);
-	w8(0x040000BB + 0xC * dma, cntrl & 0x7F);
+	w8(0x040000BB + 0xC * dma, (cntrl >> 8) & 0x7F);
 
-	dma_on_hblank &= (1 << dma);
-	dma_on_vblank &= (1 << dma);
+	dma_on_hblank &= ~(1 << dma);
+	dma_on_vblank &= ~(1 << dma);
 }
 
 void Base::MMU::on_hblank() {

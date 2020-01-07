@@ -3,7 +3,6 @@
 
 #define SCALE 5
 
-
 static const byte* width_table = new const byte[16] {
 	1, 2, 4, 8,
 	2, 4, 4, 8,
@@ -26,6 +25,13 @@ Base::GPU::GPU(Base::MMU *m) : mmu(m) {
    // renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
+	screen_image = SDL_CreateRGBSurfaceFrom(screen_buffer, 240, 160, 32, 4 * 240, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	if(!screen_image) {
+		printf("Error creating screen image (SDL_Surface*)\n");
+		printf("%s\n", SDL_GetError());
+	}
+	SDL_LockSurface(screen_image);
+
     SDL_ShowWindow(window);
 }
 
@@ -36,7 +42,7 @@ byte randValue = 0;
 static int frame_num = 0;
 
 inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_off, int y_off, bool color_depth, bool horizontal_flip, bool vertical_flip, bool use_palette) {
-	if (x_off < -8 || y_off < -8 || x_off >= 240 || y_off >= 160) return;
+	if (x_off < -8 || y_off < -8 || x_off > 240 || y_off > 160) return;
 	SDL_Rect r = { 0, 0, SCALE, SCALE };
 	for (int y = 0; y < 8; ++y) {
 		for (int x = 0; x < (color_depth ? 8 : 4); ++x) {
@@ -47,14 +53,14 @@ inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_of
 			if (color_depth) {
 				byte a = data[y * 8 + x];
 				hword color = use_palette ? plt[a] : a;
+
+				int x = (point_x + x_off);
+				int y = (point_y + y_off);
+
+				if(x < 0 || y < 0 || x >= 240 || y >= 160) continue;
+
 				if (a || !use_palette) {
-					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					if(SCALE == 1) SDL_RenderDrawPoint(renderer, (int)point_x + x_off, (int)point_y + y_off);
-					else {
-						r.x = (point_x + x_off) * SCALE;
-						r.y = (point_y + y_off) * SCALE;
-						SDL_RenderFillRect(renderer, &r);
-					}
+					screen_buffer[x + y * 240] = 0xFF000000 | (color & 0x1F) << 19 | ((color >> 5) & 0x1F) << 11 | ((color >> 10) & 0x1F) << 3;
 				}
 			}
 			else {
@@ -62,24 +68,18 @@ inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_of
 				int b1 = ((palette << 4) & 0xF0) | (a & 0xF);
 				int b2 = ((palette << 4) & 0xF0) | (a >> 4);
 				hword color = use_palette ? plt[b1] : b1;
+				
+				int x = (point_x * 2 + x_off);
+				int y = (point_y + y_off);
+
+				if(x < 0 || y < 0 || x >= 240 || y >= 160) continue;
+
 				if ((a & 0xF) || !use_palette) {
-					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					if(SCALE == 1) SDL_RenderDrawPoint(renderer, (int)point_x * 2 + (vertical_flip ? 1 : 0) + (int)x_off, (int) point_y + y_off);
-					else {
-						r.x = (point_x * 2 + (vertical_flip ? 1 : 0) + x_off) * SCALE;
-						r.y = (point_y + y_off) * SCALE;
-						SDL_RenderFillRect(renderer, &r);
-					}
+					screen_buffer[x + (vertical_flip ? 1 : 0) + y * 240] = 0xFF000000 | (color & 0x1F) << 19 | ((color >> 5) & 0x1F) << 11 | ((color >> 10) & 0x1F) << 3;
 				}
 				color = use_palette ? plt[b2] : b2;
 				if ((a >> 4) || !use_palette) {
-					SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-					if(SCALE == 1) SDL_RenderDrawPoint(renderer, (int)point_x * 2 + (vertical_flip ? 0 : 1) + (int)x_off, (int) point_y + y_off);
-					else {
-						r.x = (point_x * 2 + (vertical_flip ? 0 : 1) + x_off) * SCALE;
-						r.y = (point_y + y_off) * SCALE;
-						SDL_RenderFillRect(renderer, &r);
-					}
+					screen_buffer[x + (vertical_flip ? 0 : 1) + y * 240] = 0xFF000000 | (color & 0x1F) << 19 | ((color >> 5) & 0x1F) << 11 | ((color >> 10) & 0x1F) << 3;
 				}
 			}
 		}
@@ -184,8 +184,12 @@ void Base::GPU::render(Base::CPU *cpu) {
     bool one_d_mapping = dispcnt & (1 << 6);
 
     hword color = *(hword*)(cpu->mmu->memory[5]);
-    SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
-    SDL_RenderClear(renderer);
+    //SDL_SetRenderDrawColor(renderer, (color & 0x1F) << 3, ((color >> 5) & 0x1F) << 3, ((color >> 10) & 0x1F) << 3, 0xFF);
+    //SDL_RenderClear(renderer);
+
+	word col = (color & 0x1F) << 19 | ((color >> 5) & 0x1F) << 11 | ((color >> 10) & 0x1F) << 3 | 0xFF000000;
+	for(int i = 0; i < 240 * 160; i++) screen_buffer[i] = col; 
+
 
     // printf("Dispcnt: %.04X\n", dispcnt);
 
@@ -262,6 +266,15 @@ void Base::GPU::render(Base::CPU *cpu) {
 	}
 
 	++fps;
+
+	SDL_UnlockSurface(screen_image);
+	screen_texture = SDL_CreateTextureFromSurface(renderer, screen_image);
+	if(screen_texture) {
+		SDL_RenderCopy(renderer, screen_texture, NULL, NULL);
+		SDL_DestroyTexture(screen_texture);
+	}
+	SDL_LockSurface(screen_image);
+
 
 	// printf("Frame %d\n", frame_num++);
 	SDL_RenderPresent(renderer);
