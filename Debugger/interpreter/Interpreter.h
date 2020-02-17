@@ -20,6 +20,8 @@ namespace Debugger {
         Interpreter();
         Interpreter(Base::CPU *_cpu);
         ~Interpreter();
+
+        int disassemble = false;
 		
 		Base::Register &pc() { return cpu->pc(); }
         

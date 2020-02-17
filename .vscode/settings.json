@@ -2,6 +2,10 @@
     "files.associations": {
         "bitset": "cpp",
         "set": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "*.tcc": "cpp",
+        "istream": "cpp",
+        "streambuf": "cpp",
+        "tuple": "cpp"
     }
 }

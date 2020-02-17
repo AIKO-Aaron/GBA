@@ -360,9 +360,13 @@ void Base::MMU::check_stuff(word address, word value) {
         timers->t3_reload = value;
     }
 
+	if(address == 0x0202175B && value) {
+		printf("Written to 0x0202175B with value %.02X @ %.08X\n", value, addr);
+	}
+
 	if (address == 0x04000132 && value) {
 		printf("Enabling the key interrupts... %.02x\n", value);
 	}
     
-    if(address >= 0x10000000) printf("Illegal address written to at: %.08X\n", i);
+    if(address >= 0x10000000) printf("Illegal address written to at: %.08X\n", addr);
 }

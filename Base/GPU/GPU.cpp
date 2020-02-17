@@ -1,7 +1,7 @@
 #include "GPU.h"
 #include "../CPU/CPU.h"
 
-#define SCALE 5
+#define SCALE 1
 
 static const byte* width_table = new const byte[16] {
 	1, 2, 4, 8,

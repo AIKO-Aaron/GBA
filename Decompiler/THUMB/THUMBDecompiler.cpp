@@ -2,7 +2,6 @@
 
 
 std::string Decompiler::decompileTHUMB(hword instruction, Base::CPU *cpu, bool print) {
-    if(print) printf("Disassembling %.08X\n", instruction);
     if(print) printf("[DECOMPILER][%.08X] > %.04X ==> ", cpu->pc().data.reg32 - 2, instruction);
     
     std::string disassembled = "";

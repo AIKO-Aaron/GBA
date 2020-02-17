@@ -20,6 +20,10 @@ bin/libDebugger.so:
 	@echo "[GBA] Building libDebugger.so"
 	@$(MAKE) -C "Debugger"
 
+test:
+	@echo "[GBA] Executing......."
+	@cd bin && LD_LIBRARY_PATH=. ./gba
+
 clean:
 	@rm -rf bin/*
 	@$(MAKE) -C "GBA" clean

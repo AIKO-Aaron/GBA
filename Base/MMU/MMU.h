@@ -60,6 +60,7 @@ namespace Base {
 
 		MMU(MMU &mmu);
 		int i = 0;
+		word addr;
 
 		inline byte r8(word address) { 
 			if (address == 0x0890000C4) return gpio; 
