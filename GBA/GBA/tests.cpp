@@ -1,79 +1,169 @@
 #include "tests.h"
 
-#define NOP_THUMB 0xE7FF;
-
-void Test::test_cpu_thumb() {
+bool Test::run_tests(std::vector<Test::test_case> tcs) {
 	Base::CPU *_cpu = new Base::CPU();
-	Debugger::Interpreter* interpreter = new Debugger::Interpreter(_cpu);
+	Debugger::Interpreter *interp = new Debugger::Interpreter(_cpu);
 
-	int num_thumb_instructions = 10;
-	byte* test_memory = (byte*) malloc(sizeof(byte) * 2 * num_thumb_instructions);
-	hword* instr = (hword*)test_memory;
-	_cpu->mmu->memory[0] = test_memory;
-	_cpu->reg(CPSR).data.reg32 |= FLAG_T;
+	word* test_memory = (word*) malloc(sizeof(byte) * 4);
+
+	_cpu->mmu->memory[0] = (byte*) test_memory;
+
+
+	// Everything set up....
+	for(test_case tc : tcs) {
+		test_memory[0] = tc.instr;
+		for(int i = 0; i < NUM_REGISTERS; i++) _cpu->reg(i).data.reg32 = tc.in_regs.registers[i];
+
+		interp->executeNextInstruction(false);
+
+		word changed = 0;
+		for(int i = 0; i < NUM_REGISTERS; i++) changed |= (_cpu->reg(i).data.reg32 ^ tc.out_regs.registers[i]) ? (1 << i) : 0;
+		
+		if(changed) {
+
+			test_memory[0] = tc.instr;
+			for(int i = 0; i < NUM_REGISTERS; i++) _cpu->reg(i).data.reg32 = tc.in_regs.registers[i];
+			interp->executeNextInstruction(true);
+
+			printf("[TESTS] For Instruction: %.08X:\n", tc.instr);
+			printf("[TESTS] Output Registers not what they are supposed to be:\n");
+			for(int i = 0; i < NUM_REGISTERS; i++) {
+				if(changed & (1 << i)) printf("\tRegister %s (%d) is %.08X instead of %.08X\n", Decompiler::reg_names[i], i, _cpu->reg(i).data.reg32, tc.out_regs.registers[i]);
+			}
+			return false;
+		}
+	}
+
+	delete interp;
+	return true;
+}
+
+
+void Test::arm_branch_tests() {
+	std::vector<Test::test_case> test_cases;
+
+	word branch = 0xEA000000;
+	Test::test_case tc;
+
+	// B <off>
+	for(int i = 0; i < 0xFF; i++) {
+		tc.instr = branch | i;
+		tc.out_regs.reg.pc = 0x00000008 + (i << 2);
+		test_cases.push_back(tc);
+	}
+
+	// B -<off>
+	branch = 0xEA800000;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.instr = branch | i;
+		tc.out_regs.reg.pc = 0xFE000008 + (i << 2);
+		test_cases.push_back(tc);
+	}
+
+	// BL <off>
+	tc.in_regs.reg.lr = 0xDEADBABE;
+	tc.out_regs.reg.lr = 0x00000004;
+
+	branch = 0xEB000000;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.instr = branch | i;
+		tc.out_regs.reg.pc = 0x00000008 + (i << 2);
+		test_cases.push_back(tc);
+	}
+
+	if(run_tests(test_cases)) printf("[+] ARM Branch: OK\n");
+	else printf("[-] ARM Branch: FAIL\n");
+}
+
+void Test::arm_bx_tests() {
+	std::vector<Test::test_case> test_cases;
+	word bx = 0xE12FFF10;
+	Test::test_case tc;
+
+	// BX Rx (to ARM code)
+	tc.out_regs.reg.pc = 0xDEADBABE;
+
+	for(int i = 0; i < 15; i++) {
+		tc.in_regs.registers[i] = 0xDEADBABE;
+		tc.out_regs.registers[i] = 0xDEADBABE;
+		tc.instr = bx | i;
+
+		test_cases.push_back(tc);
+		
+		tc.in_regs.registers[i] = 0;
+		tc.out_regs.registers[i] = 0;
+	}
+
+	tc.out_regs.reg.pc = 0xDEADC0FE;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+
+	for(int i = 0; i < 15; i++) {
+		tc.in_regs.registers[i] = 0xDEADC0FF;
+		tc.out_regs.registers[i] = 0xDEADC0FF;
+		tc.instr = bx | i;
+
+		test_cases.push_back(tc);
+		
+		tc.in_regs.registers[i] = 0;
+		tc.out_regs.registers[i] = 0;
+	}
+
+	if(run_tests(test_cases)) printf("[+] ARM BX: OK\n");
+	else printf("[-] ARM BX: FAIL\n");
+}
+
+void Test::arm_data_processing_tests() {
+	std::vector<Test::test_case> test_cases;
+	Test::test_case tc;
+	word ins = 0xE2000000;
+
+	// AND R0, R0, #XXX
+	// AND with immidiate
+	tc.in_regs.reg.r0 = 0xFFFFFFFF;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out;
+
+		test_cases.push_back(tc);
+	}
+
+	// EOR R0, R0, #XXX
+	ins = 0xE2200000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFF ^ out;
+
+		test_cases.push_back(tc);
+	}
+
+	// SUB R0, R0, #XXX
+	ins = 0xE2400000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFF - out;
+
+		test_cases.push_back(tc);
+	}
 	
-	for (int i = 0; i < num_thumb_instructions; i++) instr[i] = NOP_THUMB;
 
-	// thumb_test_unconditional_jump(interpreter, instr);
-	// thumb_test_mve_shifted_register(interpreter, instr);
+	if(run_tests(test_cases)) printf("[+] ARM Data Processing: OK\n");
+	else printf("[-] ARM Data Processing: FAIL\n");
 }
 
-void Test::test_cpu_arm() {
-
-}
-
-void Test::thumb_test_unconditional_jump(Debugger::Interpreter* interpreter, hword *instr) {
-	for (int offset = 0; offset < 0x800; offset++) {
-		interpreter->cpu->reg(PC).data.reg32 = 0; // start at 0
-		instr[0] = 0xE000 | offset; // offset max 0x7FF
-
-		interpreter->executeNextInstruction();
-
-		word new_pc = interpreter->cpu->pc().data.reg32;
-
-		if (offset < 0x400) assert(new_pc == 4 + 2 * offset);
-		else assert(new_pc == 4 + 2 * ((offset) | 0xFFFFFC00));
-	}
-}
-
-void Test::thumb_test_move_shifted_register(Debugger::Interpreter* interpreter, hword* instr) {
-	// LSL
-	hword ci = 0x0001; // source = 0, dest = 1, immidiate value = 0
-	interpreter->cpu->reg(R0).data.reg32 = 1;
-	for (int i = 0; i < 32; i++) {
-		interpreter->cpu->reg(PC).data.reg32 = 0; // start at 0
-		instr[0] = ci | (i << 6);
-		interpreter->executeNextInstruction();
-		assert(interpreter->cpu->reg(R0).data.reg32 == 1 && interpreter->cpu->reg(R1).data.reg32 == (1 << i));
-	}
-
-	// LSR
-	ci = 0x0801; // source = 0, dest = 1, immidiate value = 0
-	interpreter->cpu->reg(R0).data.reg32 = 0x80000000;
-	for (int i = 0; i < 32; i++) {
-		interpreter->cpu->reg(PC).data.reg32 = 0; // start at 0
-		instr[0] = ci | (i << 6);
-		interpreter->executeNextInstruction();
-		assert(interpreter->cpu->reg(R0).data.reg32 == 0x80000000 && interpreter->cpu->reg(R1).data.reg32 == (1 << (31 - i)));
-	}
-
-	// ASR
-	ci = 0x1001; // source = 0, dest = 1, immidiate value = 0
-	interpreter->cpu->reg(R0).data.reg32 = 0xC0000000;
-	for (int i = 0; i < 32; i++) {
-		interpreter->cpu->reg(PC).data.reg32 = 0; // start at 0
-		instr[0] = ci | (i << 6);
-		interpreter->executeNextInstruction();
-		interpreter->printRegisters();
-		assert(interpreter->cpu->reg(R0).data.reg32 == 0xC0000000 && interpreter->cpu->reg(R1).data.reg32 == ((0xC0000000 >> i) | (0xFFFFFFFF << (32 - i))));
-	}
-}
-
-void Test::thumb_test_add_sub(Debugger::Interpreter* interpreter, hword* instr) {
-	for (int i = 0; i < 32; i++) {
-		interpreter->cpu->reg(PC).data.reg32 = 0; // start at 0
-		instr[0] = 0x1800;
-		interpreter->executeNextInstruction();
-		assert(interpreter->cpu->reg(R0).data.reg32 == 1 && interpreter->cpu->reg(R1).data.reg32 == (1 << i));
-	}
+void Test::all_tests() {
+	Test::arm_branch_tests();
+	Test::arm_bx_tests();
+	Test::arm_data_processing_tests();
 }

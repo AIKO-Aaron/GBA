@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-//#define RUN_TESTS
+#define RUN_TESTS
 
 
 #ifdef RUN_TESTS
@@ -58,7 +58,7 @@ int start_game(int argc, char **args) {
 
 int main(int argc, char** args) {
 #ifdef RUN_TESTS
-	Test::test_cpu_thumb();
+	Test::all_tests();
 	return 0;
 #else
 	return start_game(argc, args);

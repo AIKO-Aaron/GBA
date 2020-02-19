@@ -14,6 +14,7 @@ Debugger::Interpreter::~Interpreter() {
     
 }
 
+bool done = false;
 void Debugger::Interpreter::executeNextInstruction(bool disass) {
     cpu->update_cycles(2); // All instructions increase the cycle by at least one
 
@@ -35,12 +36,13 @@ void Debugger::Interpreter::executeNextInstruction(bool disass) {
             printf("We're in this other function doing birch stuff... (CreatePokeballSpriteToReleaseMon)\n");
         }
 
-        if(pc().data.reg32 == 0x080078C6) {
+        if(pc().data.reg32 == 0x080078C6 && !done) {
             word sprite_obj_addr = cpu->reg(R0).data.reg32;
             word anims = cpu->r32(sprite_obj_addr + 8);
 
 
             if(anims == 0x082EC69C) {
+                done = true;
                 disassemble = 100;
                 printf("Reached the place...\n");
                 printf("Sprite state object (r0 --> r0+0x30) @ %.08X:\n00\t\t", cpu->reg(R0).data.reg32);

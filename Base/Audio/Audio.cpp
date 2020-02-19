@@ -43,7 +43,7 @@ Base::AudioController::AudioController(byte *io) : io_mem(io) {
 
 
 	device = SDL_OpenAudioDevice(NULL, 0, &audioSpec, &actualSpec, 0);
-	printf("Samples of actual spec: %.08X, format: %.08X\n", actualSpec.samples, actualSpec.format);
+	//printf("Samples of actual spec: %.08X, format: %.08X\n", actualSpec.samples, actualSpec.format);
 	if (device) {
 		// SDL_PauseAudioDevice(device, 0);
 	} else {
