@@ -117,6 +117,8 @@ void Test::arm_data_processing_tests() {
 	Test::test_case tc;
 	word ins = 0xE2000000;
 
+	// No Flags set...
+
 	// AND R0, R0, #XXX
 	// AND with immidiate
 	tc.in_regs.reg.r0 = 0xFFFFFFFF;
@@ -156,7 +158,269 @@ void Test::arm_data_processing_tests() {
 
 		test_cases.push_back(tc);
 	}
-	
+
+	// RSB R0, R0, #XXX
+	ins = 0xE2600000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out - 0xFFFFFFFF;
+
+		test_cases.push_back(tc);
+	}
+
+	// ADD R0, R0, #XXX
+	ins = 0xE2800000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out + 0xFFFFFFFF;
+
+		test_cases.push_back(tc);
+	}
+
+	// ADC R0, R0, #XXX
+	tc.in_regs.reg.cpsr |= FLAG_C;
+	tc.out_regs.reg.cpsr |= FLAG_C;
+
+	ins = 0xE2A00000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out + 0xFFFFFFFF + 1;
+
+		test_cases.push_back(tc);
+	}
+
+	tc.in_regs.reg.cpsr &= ~FLAG_C;
+	tc.out_regs.reg.cpsr &= ~FLAG_C;
+
+	// SBC R0, R0, #XXX
+	ins = 0xE2C00000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFF - out - 1;
+
+		test_cases.push_back(tc);
+	}
+
+	// RSC R0, R0, #XXX
+	ins = 0xE2E00000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out - 0xFFFFFFFF - 1;
+
+		test_cases.push_back(tc);
+	}
+
+	// ORR R0, R0, #XXX
+	ins = 0xE3800000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out | 0xFFFFFFFF;
+
+		test_cases.push_back(tc);
+	}
+
+	// MOV R0, #XXX
+	ins = 0xE3A00000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out;
+
+		test_cases.push_back(tc);
+	}
+
+	// BIC R0, R0, #XXX
+	ins = 0xE3C00000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFF & ~out;
+
+		test_cases.push_back(tc);
+	}
+
+	// MVN R0, #XXX
+	ins = 0xE3E00000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = ~out;
+
+		test_cases.push_back(tc);
+	}
+
+
+	// With the S Bit now....
+	ins = 0xE2100000;
+
+	// AND R0, R0, #XXX
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(out & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_C;
+		if(!out) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(out & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+
+	// EOR R0, R0, #XXX
+	ins = 0xE2300000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFF ^ out;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(out & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_C;
+		if(!tc.out_regs.reg.r0) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(tc.out_regs.reg.r0 & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+
+	// SUB R0, R0, #XXX
+	ins = 0xE2500000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFF - out;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(0xFFFFFFFF >= out) tc.out_regs.reg.cpsr |= FLAG_C;
+		if((1 ^ (out >> 31)) && (1 ^ (tc.out_regs.reg.r0 >> 31))) tc.out_regs.reg.cpsr |= FLAG_V;
+		if(!tc.out_regs.reg.r0) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(tc.out_regs.reg.r0 & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+
+	// RSB R0, R0, #XXX
+	ins = 0xE2700000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out - 0xFFFFFFFF;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(out >= 0xFFFFFFFF) tc.out_regs.reg.cpsr |= FLAG_C;
+		if((1 ^ (out >> 31)) && ((out >> 31) ^ (tc.out_regs.reg.r0 >> 31))) tc.out_regs.reg.cpsr |= FLAG_V;
+		if(!tc.out_regs.reg.r0) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(tc.out_regs.reg.r0 & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+
+	// ADD R0, R0, #XXX
+	ins = 0xE2900000;
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = out + 0xFFFFFFFF;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(out >= 1) tc.out_regs.reg.cpsr |= FLAG_C;
+		if(!(1 ^ (out >> 31)) && ((out >> 31) ^ (tc.out_regs.reg.r0 >> 31))) tc.out_regs.reg.cpsr |= FLAG_V;
+		if(!tc.out_regs.reg.r0) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(tc.out_regs.reg.r0 & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+
+	// ADC R0, R0, #XXX
+	ins = 0xE2B00000;
+	tc.in_regs.reg.cpsr |= FLAG_C;
+
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		out++;
+		tc.out_regs.reg.r0 = out + 0xFFFFFFFF;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(out >= 1) tc.out_regs.reg.cpsr |= FLAG_C;
+		if(!(1 ^ (out >> 31)) && ((out >> 31) ^ (tc.out_regs.reg.r0 >> 31))) tc.out_regs.reg.cpsr |= FLAG_V;
+		if(!tc.out_regs.reg.r0) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(tc.out_regs.reg.r0 & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+	tc.in_regs.reg.cpsr &= ~FLAG_C;
+
+	// SBC R0, R0, #XXX
+	ins = 0xE2D00000;
+
+	for(int i = 0; i < 0xFFF; i++) {
+		tc.instr = ins | i;
+
+		word out = i & 0xFF;
+		word s = (i >> 8) * 2;
+		if(s) out = (out >> s) | (out << (32 - s));
+		tc.out_regs.reg.r0 = 0xFFFFFFFE - out;
+
+		tc.out_regs.reg.cpsr = 0;
+		if(0xFFFFFFFF >= out) tc.out_regs.reg.cpsr |= FLAG_C;
+		if((1 ^ (out >> 31)) && (1 ^ (tc.out_regs.reg.r0 >> 31))) tc.out_regs.reg.cpsr |= FLAG_V;
+		if(!tc.out_regs.reg.r0) tc.out_regs.reg.cpsr |= FLAG_Z;
+		if(tc.out_regs.reg.r0 & 0x80000000) tc.out_regs.reg.cpsr |= FLAG_N;
+
+		test_cases.push_back(tc);
+	}
+
 
 	if(run_tests(test_cases)) printf("[+] ARM Data Processing: OK\n");
 	else printf("[-] ARM Data Processing: FAIL\n");

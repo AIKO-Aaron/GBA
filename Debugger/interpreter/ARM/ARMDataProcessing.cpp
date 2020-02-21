@@ -6,6 +6,11 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
     bool imm = instruction & 0x02000000;
     bool s = instruction & 0x00100000;
     byte opcode = (instruction >> 21) & 0xF;
+
+    bool was_n_set = cpu->reg(CPSR) & FLAG_N;
+    bool was_z_set = cpu->reg(CPSR) & FLAG_Z;
+    bool was_c_set = cpu->reg(CPSR) & FLAG_C;
+    bool was_v_set = cpu->reg(CPSR) & FLAG_V;
     
     Base::Register &dest = cpu->reg((instruction >> 12) & 0xF);
     word arg1 = cpu->reg((instruction >> 16) & 0xF).data.reg32;
@@ -42,14 +47,14 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             {
                 word result = arg1 - arg2;
 
-                if(arg2 <= arg1) cpu->reg(CPSR) |= FLAG_C;
-                else cpu->reg(CPSR) &= ~FLAG_C;
+                if(arg1 >= arg2) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
+                else set_c = RESET; //cpu->reg(CPSR) &= ~FLAG_C;
                 
-                if((result & 0x80000000) == (arg2 & 0x80000000) && (result & 0x80000000) != (arg1 & 0x80000000)) cpu->reg(CPSR) |= FLAG_V;
-                else cpu->reg(CPSR) &= ~FLAG_V;     
+                if((result & 0x80000000) == (arg2 & 0x80000000) && (result & 0x80000000) != (arg1 & 0x80000000)) set_v = SET; //cpu->reg(CPSR) |= FLAG_V;
+                else set_v = RESET; //cpu->reg(CPSR) &= ~FLAG_V;     
 
 
-                if(((instruction >> 12) & 0xF) == 0xF && arg2 <= 0x4) {
+                if(((instruction >> 12) & 0xF) == 0xF && s) {
                     // printf("Returning from address %.08X (CPSR: %.08X, SPSR: %.08X)\n", cpu->pc().data.reg32, cpu->reg(CPSR).data.reg32, cpu->reg(SPSR).data.reg32);
                     dest.data.reg32 = result;
                     cpu->reg(CPSR) = cpu->reg(SPSR);
@@ -66,11 +71,11 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             {
                 word result = arg2 - arg1;
 
-                if(arg1 <= arg2) cpu->reg(CPSR) |= FLAG_C;
-                else cpu->reg(CPSR) &= ~FLAG_C;
+                if(arg2 >= arg1) set_c = SET;
+                else set_c = RESET;
                 
-                if((result & 0x80000000) == (arg1 & 0x80000000) && (result & 0x80000000) != (arg2 & 0x80000000)) cpu->reg(CPSR) |= FLAG_V;
-                else cpu->reg(CPSR) &= ~FLAG_V;     
+                if((result & 0x80000000) == (arg1 & 0x80000000) && (result & 0x80000000) != (arg2 & 0x80000000)) set_v = SET;
+                else set_v = RESET;     
 
                 dest.data.reg32 = result;
                 set_n = (dest.data.reg32 & 0x80000000) ? SET : RESET;
@@ -83,7 +88,7 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             
             set_n = out & 0x80000000 ? SET : RESET;
             set_z = out == 0 ? SET : RESET;
-            set_c = ((uint64_t) arg1 + (uint64_t) arg2) > 0xFFFFFFFF ? SET : RESET;
+            set_c = ((uint64_t) arg1 + (uint64_t) arg2) > (uint64_t) 0xFFFFFFFF ? SET : RESET;
 
             set_v = (arg1 & 0x80000000) == (arg2 & 0x80000000) && (arg1 & 0x80000000) != (out & 0x80000000) ? SET : RESET;
             
@@ -92,12 +97,10 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             break;
         case 0x5: // ADC
         {
-            if(cpu->reg(CPSR) & FLAG_C) ++arg1;
-            word out = arg1 + arg2;
-            
-            set_n = out & 0x80000000 ? SET : RESET;
-            set_z = out == 0 ? SET : RESET;
-            set_c = ((uint64_t) arg1 + (uint64_t) arg2) > 0xFFFFFFFF ? SET : RESET;
+            word to_add = 0;
+            if(was_c_set) ++to_add;
+            word out = arg1 + arg2 + to_add;
+            set_c = ((uint64_t) arg1 + (uint64_t) arg2 + (uint64_t) to_add) > (uint64_t) 0xFFFFFFFF ? SET : RESET;
             set_v = (arg1 & 0x80000000) == (arg2 & 0x80000000) && (arg1 & 0x80000000) != (out & 0x80000000) ? SET : RESET;
             
             dest.data.reg32 = out;
@@ -107,15 +110,15 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             break;
         case 0x6: // SBC
         {
-            --arg2;
-            if(cpu->reg(CPSR) & FLAG_C) ++arg2;
-            word out = arg1 - arg2;
+            word to_sub = 1;
+            if(was_c_set) --to_sub;
+            word out = arg1 - arg2 - to_sub;
             
-            if(arg2 > arg1) cpu->reg(CPSR) |= FLAG_C;
-            else cpu->reg(CPSR) &= ~FLAG_C;
+            if(arg1 >= arg2 - to_sub) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
+            else set_c = RESET; //cpu->reg(CPSR) &= ~FLAG_C;
                 
-            if((out & 0x80000000) == (arg2 & 0x80000000) && (out & 0x80000000) != (arg1 & 0x80000000)) cpu->reg(CPSR) |= FLAG_V;
-            else cpu->reg(CPSR) &= ~FLAG_V;
+            if((out & 0x80000000) == (arg2 & 0x80000000) && (out & 0x80000000) != (arg1 & 0x80000000)) set_v = SET; //cpu->reg(CPSR) |= FLAG_V;
+            else set_v = RESET; //cpu->reg(CPSR) &= ~FLAG_V;
 
             dest.data.reg32 = out;
             set_n = (dest.data.reg32 & 0x80000000) ? SET : RESET;
@@ -124,15 +127,15 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             break;
         case 0x7: // RSC
         {
-            --arg1;
-            if(cpu->reg(CPSR) & FLAG_C) ++arg1;
+            ++arg1;
+            if(was_c_set) --arg1;
             word out = arg2 - arg1;
             
-            if(arg2 <= arg1) cpu->reg(CPSR) |= FLAG_C;
-            else cpu->reg(CPSR) &= ~FLAG_C;
+            if(arg2 > arg1) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
+            else set_c = RESET; //cpu->reg(CPSR) &= ~FLAG_C;
                 
-            if((out & 0x80000000) == (arg2 & 0x80000000) && (out & 0x80000000) != (arg1 & 0x80000000)) cpu->reg(CPSR) |= FLAG_V;
-            else cpu->reg(CPSR) &= ~FLAG_V;
+            if((out & 0x80000000) == (arg2 & 0x80000000) && (out & 0x80000000) != (arg1 & 0x80000000)) set_v = SET; //cpu->reg(CPSR) |= FLAG_V;
+            else set_v = RESET; //cpu->reg(CPSR) &= ~FLAG_V;
 
             dest.data.reg32 = out;
             set_n = (dest.data.reg32 & 0x80000000) ? SET : RESET;
