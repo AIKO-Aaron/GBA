@@ -42,10 +42,8 @@ byte randValue = 0;
 static int frame_num = 0;
 
 inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_off, int y_off, bool color_depth, bool horizontal_flip, bool vertical_flip, bool use_palette) {
-	if (x_off < -8 || y_off < -8 || x_off > 240 || y_off > 160) return;
-	SDL_Rect r = { 0, 0, SCALE, SCALE };
-	for (int y = 0; y < 8; ++y) {
-		for (int x = 0; x < (color_depth ? 8 : 4); ++x) {
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < (color_depth ? 8 : 4); x++) {
 
 			int point_x = vertical_flip ? ((color_depth ? 7 : 3) - x) : x;
 			int point_y = horizontal_flip ? (7 - y) : y;
@@ -72,7 +70,7 @@ inline void Base::GPU::draw_tile(hword palette, byte *data, hword *plt, int x_of
 				int x = (point_x * 2 + x_off);
 				int y = (point_y + y_off);
 
-				if(x < 0 || y < 0 || x >= 240 || y >= 160) continue;
+				if(x < 0 || y < 0 || x >= 239 || y >= 160) continue;
 
 				if ((a & 0xF) || !use_palette) {
 					screen_buffer[x + (vertical_flip ? 1 : 0) + y * 240] = 0xFF000000 | (color & 0x1F) << 19 | ((color >> 5) & 0x1F) << 11 | ((color >> 10) & 0x1F) << 3;
