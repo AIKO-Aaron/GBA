@@ -14,18 +14,19 @@ bool Test::run_tests(std::vector<Test::test_case> tcs) {
 		test_memory[0] = tc.instr;
 		for(int i = 0; i < NUM_REGISTERS; i++) _cpu->reg(i).data.reg32 = tc.in_regs.registers[i];
 
-		interp->executeNextInstruction(false);
+		interp->executeNextInstruction(tc.disass);
 
 		word changed = 0;
 		for(int i = 0; i < NUM_REGISTERS; i++) changed |= (_cpu->reg(i).data.reg32 ^ tc.out_regs.registers[i]) ? (1 << i) : 0;
 		
+		if(tc.callback) tc.callback(_cpu);
 		if(changed) {
-
 			test_memory[0] = tc.instr;
 			for(int i = 0; i < NUM_REGISTERS; i++) _cpu->reg(i).data.reg32 = tc.in_regs.registers[i];
 			interp->executeNextInstruction(true);
 
-			printf("[TESTS] For Instruction: %.08X:\n", tc.instr);
+
+			printf("[TESTS] For Instruction: %.08X: ID: %.08X\n", tc.instr, tc.tc_id);
 			printf("[TESTS] Output Registers not what they are supposed to be:\n");
 			for(int i = 0; i < NUM_REGISTERS; i++) {
 				if(changed & (1 << i)) printf("\tRegister %s (%d) is %.08X instead of %.08X\n", Decompiler::reg_names[i], i, _cpu->reg(i).data.reg32, tc.out_regs.registers[i]);
@@ -593,8 +594,140 @@ void Test::arm_data_processing_tests() {
 	else printf("[-] ARM Data Processing: FAIL\n");
 }
 
+void Test::arm_ldr_str() {
+	std::vector<test_case> test_cases;
+	test_case tc;
+	
+	tc.instr = 0xE7C01002;
+	tc.in_regs.reg.r0 = 0x02000000; // Address for write
+	tc.out_regs.reg.r0 = 0x02000000; // Address for write
+
+	// STRB & LDRB
+
+	for(int i = 0; i < 0xFF; i++) {
+		tc.in_regs.reg.r1 = i;
+		tc.in_regs.reg.r2 = i;
+
+		tc.out_regs.reg.r1 = i;
+		tc.out_regs.reg.r2 = i;
+
+		test_cases.push_back(tc);
+	}
+
+	tc.instr = 0xE7D01002;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.in_regs.reg.r1 = 0;
+		tc.in_regs.reg.r2 = i;
+
+		tc.out_regs.reg.r1 = i;
+		tc.out_regs.reg.r2 = i;
+
+		tc.tc_id = i;
+
+		test_cases.push_back(tc);
+	}
+
+	// STR & LDR
+
+	tc.instr = 0xE7801002;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.in_regs.reg.r1 = (0xDEADBABE << (i % 32)) | ((0xDEADBABE >> (32 - (i % 32))));
+		tc.in_regs.reg.r2 = i * 4;
+
+		tc.out_regs.reg.r1 = (0xDEADBABE << (i % 32)) | ((0xDEADBABE >> (32 - (i % 32))));
+		tc.out_regs.reg.r2 = i * 4;
+
+		test_cases.push_back(tc);
+	}
+
+	tc.instr = 0xE7901002;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.in_regs.reg.r1 = 0;
+		tc.in_regs.reg.r2 = i * 4;
+
+		tc.out_regs.reg.r1 = (0xDEADBABE << (i % 32)) | ((0xDEADBABE >> (32 - (i % 32))));
+		tc.out_regs.reg.r2 = i * 4;
+
+		tc.tc_id = i;
+
+		test_cases.push_back(tc);
+	}
+
+	// STRH & LDRH
+
+	tc.instr = 0xE18010B2;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.in_regs.reg.r1 = ((0xBABE << (i % 16)) | ((0xBABE >> (16 - (i % 16))))) & 0xFFFF;
+		tc.in_regs.reg.r2 = i * 2;
+
+		tc.out_regs.reg.r1 = ((0xBABE << (i % 16)) | ((0xBABE >> (16 - (i % 16))))) & 0xFFFF;
+		tc.out_regs.reg.r2 = i * 2;
+
+		test_cases.push_back(tc);
+	}
+
+	tc.instr = 0xE19010B2;
+	for(int i = 0; i < 0xFF; i++) {
+		tc.in_regs.reg.r1 = 0;
+		tc.in_regs.reg.r2 = i * 2;
+
+		tc.out_regs.reg.r1 = ((0xBABE << (i % 16)) | ((0xBABE >> (16 - (i % 16))))) & 0xFFFF;
+		tc.out_regs.reg.r2 = i * 2;
+
+		tc.tc_id = i;
+
+		test_cases.push_back(tc);
+	}
+
+	if(run_tests(test_cases)) printf("[+] ARM LDR & STR: OK\n");
+	else printf("[-] ARM LDR & STR: FAIL\n");
+}
+
+int data[15];
+void Test::arm_stm_ldm() {
+	std::vector<Test::test_case> test_cases;
+	Test::test_case tc;
+
+	tc.in_regs.reg.r0 = 0x02000000;
+	tc.out_regs.reg.r0 = 0x02000000;
+	tc.disass = true;
+	data[0] = 0x02000000;
+
+	for(int i = 1; i < 14; i++) {
+		word r = (word) rand();
+		tc.in_regs.registers[i] = r;
+		tc.out_regs.registers[i] = r;
+		data[i] = r;
+	}
+
+	// Store all registers at the address of r0
+	tc.instr = 0xE880FFFF;
+	tc.callback = [] (Base::CPU *_cpu) -> void { 
+		for(int i = 0; i < 16; i++) {
+			printf("Called ... %.08X == %.08X\n", data[i], _cpu->r32(0x02000000 + 4*i));
+		}
+	};
+	test_cases.push_back(tc);
+	tc.callback = nullptr;
+
+
+
+	if(run_tests(test_cases)) printf("[+] ARM STM & LDM: OK\n");
+	else printf("[-] ARM STM & LDM: FAIL\n");
+}
+void Test::arm_mul() {
+	std::vector<Test::test_case> test_cases;
+	Test::test_case tc;
+
+	if(run_tests(test_cases)) printf("[+] ARM MUL: OK\n");
+	else printf("[-] ARM MUL: FAIL\n");
+}
+
 void Test::all_tests() {
 	Test::arm_branch_tests();
 	Test::arm_bx_tests();
 	Test::arm_data_processing_tests();
+	Test::arm_ldr_str();
+	Test::arm_stm_ldm();
+	Test::arm_mul();
 }

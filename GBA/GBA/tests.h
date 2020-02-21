@@ -36,8 +36,11 @@ namespace Test {
 
 	typedef struct {
 		word instr = 0x00000000;
+		word tc_id = 0; // For identification
 		register_test_set in_regs = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		register_test_set out_regs = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0};
+		void (*callback)(Base::CPU *_cpu) = nullptr;
+		bool disass = false;
 	} test_case;
 
 	bool run_tests(std::vector<test_case> tcs);
@@ -45,7 +48,9 @@ namespace Test {
 	void arm_branch_tests();
 	void arm_bx_tests();
 	void arm_data_processing_tests();
-
+	void arm_ldr_str();
+	void arm_stm_ldm();
+	void arm_mul();
 
 	void all_tests();
 

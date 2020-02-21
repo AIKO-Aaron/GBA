@@ -63,7 +63,7 @@ void Debugger::execute_arm(word instruction, Base::CPU *cpu) {
                     }
                 } else {
                     for(int i = 0; i < 16; i++) if(instruction & (1 << i)) {
-                        cpu->w32(start_address, cpu->reg(i).data.reg32);
+                        cpu->w32(start_address, cpu->reg(i).data.reg32 + ((i == 15) ? 8 : 0));
                         start_address += 4;
                     }
                 }
