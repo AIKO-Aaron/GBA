@@ -114,12 +114,12 @@ inline void Base::GPU::render_background(byte bg) {
 	for (int i = 0; i < 32 * 32 * (size > 0 ? 2 : 1) * (size == 3 ? 2 : 1); i++) {
 		hword data;
 		if (bg_mode == 0 || (bg_mode == 1 && bg <= 1)) {
-			start_addr += 2;
 			data = *(hword*)(vram_data + start_addr);
+			start_addr += 2;
 		}
 		else {
-			++start_addr;
 			data = *(byte*)(vram_data + start_addr);
+			++start_addr;
 		}
 
 		draw_tile(data >> 12, &vram_data[off + (color_depth ? 64 : 32) * ((int) (data & 0x3FF))], palette_bg, (int) (i % 32) * 8 - x_off, (int) (i / 32) * 8 - y_off, color_depth, data & (1 << 11), data & (1 << 10), bg_mode < 3);
