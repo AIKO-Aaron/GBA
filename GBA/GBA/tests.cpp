@@ -697,6 +697,52 @@ START_MODULE(arm_mul)
 END_MODULE(arm_mul)
 
 START_MODULE(thumb_mov)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
+
+	tc.in_regs.reg.r0 = 0x00000008;
+	tc.in_regs.reg.r1 = 0x00000010;
+	tc.in_regs.reg.r2 = 0x00000100;
+	tc.in_regs.reg.r3 = 0x00001000;
+	tc.in_regs.reg.r4 = 0x00010000;
+	tc.in_regs.reg.r5 = 0x00100000;
+	tc.in_regs.reg.r6 = 0x01000000;
+	tc.in_regs.reg.r7 = 0x10000000;
+
+	tc.out_regs.reg.r0 = 0x00000008;
+	tc.out_regs.reg.r1 = 0x00000010;
+	tc.out_regs.reg.r2 = 0x00000100;
+	tc.out_regs.reg.r3 = 0x00001000;
+	tc.out_regs.reg.r4 = 0x00010000;
+	tc.out_regs.reg.r5 = 0x00100000;
+	tc.out_regs.reg.r6 = 0x01000000;
+	tc.out_regs.reg.r7 = 0x10000000;
+
+	for(int i = 0; i < 0x20; i++) { // Immidiate
+		for(int rs = 0; rs < 8; rs++) {
+			for(int rd = 0; rd < 8; rd++) {
+				// LSL
+				tc.instr = (i << 6) | (rs << 3) | rd;
+				tc.out_regs.registers[rd] = tc.in_regs.registers[rs] << i;
+				test_cases.push_back(tc);
+
+				// LSR
+				tc.instr |= (1 << 11);
+				tc.out_regs.registers[rd] = tc.in_regs.registers[rs] >> i;
+				test_cases.push_back(tc);
+
+				// ASR
+				tc.instr &= ~(1 << 11);
+				tc.instr |= (1 << 12);
+				tc.out_regs.registers[rd] = (tc.in_regs.registers[rs] >> i) | ((tc.in_regs.registers[rs] & 0x80000000) ? (0xFFFFFFFF << (32 - i)) : 0);
+				test_cases.push_back(tc);
+
+				tc.out_regs.registers[rd] = tc.in_regs.registers[rd];
+			}
+		}
+	}
+
 END_MODULE(thumb_mov)
 
 START_MODULE(thumb_add_sub)

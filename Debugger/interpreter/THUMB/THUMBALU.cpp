@@ -31,7 +31,7 @@ void Debugger::thumb_alu(hword instruction, Base::CPU *cpu) {
             else cpu->reg(CPSR).data.reg32 &= ~FLAG_C;
             break;
         case 0x4:
-            res = (op1 >> op2) | (0xFFFFFFFF << (32 - op2));
+            res = (op1 >> op2) | ((op1 & 0x80000000) ? (0xFFFFFFFF << (32 - op2)) : 0);
             if((op1 >> (op2 - 1)) & 1) cpu->reg(CPSR).data.reg32 |= FLAG_C;
             else cpu->reg(CPSR).data.reg32 &= ~FLAG_C;
             break;
@@ -92,7 +92,6 @@ void Debugger::thumb_alu(hword instruction, Base::CPU *cpu) {
             break;
         case 0xD:
             res = op1 * op2;
-            // TODO carry & oVerflow
             break;
         case 0xE:
             res = op1 & ~op2;
