@@ -114,7 +114,7 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             if(was_c_set) --to_sub;
             word out = arg1 - arg2 - to_sub;
             
-            if(arg1 >= arg2 - to_sub) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
+            if(arg1 >= arg2 + to_sub) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
             else set_c = RESET; //cpu->reg(CPSR) &= ~FLAG_C;
                 
             if((out & 0x80000000) == (arg2 & 0x80000000) && (out & 0x80000000) != (arg1 & 0x80000000)) set_v = SET; //cpu->reg(CPSR) |= FLAG_V;
@@ -127,11 +127,11 @@ void Debugger::arm_data_processing(word instruction, Base::CPU *cpu) {
             break;
         case 0x7: // RSC
         {
-            ++arg1;
-            if(was_c_set) --arg1;
-            word out = arg2 - arg1;
+            word to_sub = 1;
+            if(was_c_set) --to_sub;
+            word out = arg2 - arg1 - to_sub;
             
-            if(arg2 > arg1) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
+            if(arg2 >= arg1 + to_sub) set_c = SET; //cpu->reg(CPSR) |= FLAG_C;
             else set_c = RESET; //cpu->reg(CPSR) &= ~FLAG_C;
                 
             if((out & 0x80000000) == (arg2 & 0x80000000) && (out & 0x80000000) != (arg1 & 0x80000000)) set_v = SET; //cpu->reg(CPSR) |= FLAG_V;
