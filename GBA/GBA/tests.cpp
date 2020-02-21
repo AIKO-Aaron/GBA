@@ -1,5 +1,8 @@
 #include "tests.h"
 
+#define START_MODULE(name) void Test::name() { std::vector<Test::test_case> test_cases; Test::test_case tc;
+#define END_MODULE(name) if(run_tests(test_cases)) printf("[+] %-40s: OK\n", #name); else printf("[-] %-40s: FAIL\n", #name); }
+
 bool Test::run_tests(std::vector<Test::test_case> tcs) {
 	Base::CPU *_cpu = new Base::CPU();
 	Debugger::Interpreter *interp = new Debugger::Interpreter(_cpu);
@@ -39,12 +42,9 @@ bool Test::run_tests(std::vector<Test::test_case> tcs) {
 	return true;
 }
 
-
-void Test::arm_branch_tests() {
-	std::vector<Test::test_case> test_cases;
-
+//void Test::arm_branch_tests() {
+START_MODULE(arm_branch_tests)
 	word branch = 0xEA000000;
-	Test::test_case tc;
 
 	// B <off>
 	for(int i = 0; i < 0xFF; i++) {
@@ -71,15 +71,10 @@ void Test::arm_branch_tests() {
 		tc.out_regs.reg.pc = 0x00000008 + (i << 2);
 		test_cases.push_back(tc);
 	}
+END_MODULE(arm_branch_tests)
 
-	if(run_tests(test_cases)) printf("[+] ARM Branch: OK\n");
-	else printf("[-] ARM Branch: FAIL\n");
-}
-
-void Test::arm_bx_tests() {
-	std::vector<Test::test_case> test_cases;
+START_MODULE(arm_bx_tests)
 	word bx = 0xE12FFF10;
-	Test::test_case tc;
 
 	// BX Rx (to ARM code)
 	tc.out_regs.reg.pc = 0xDEADBABE;
@@ -109,13 +104,9 @@ void Test::arm_bx_tests() {
 		tc.out_regs.registers[i] = 0;
 	}
 
-	if(run_tests(test_cases)) printf("[+] ARM BX: OK\n");
-	else printf("[-] ARM BX: FAIL\n");
-}
+END_MODULE(arm_bx_tests)
 
-void Test::arm_data_processing_tests() {
-	std::vector<Test::test_case> test_cases;
-	Test::test_case tc;
+START_MODULE(arm_data_processing_tests)
 	word ins = 0xE2000000;
 
 	// No Flags set...
@@ -590,14 +581,9 @@ void Test::arm_data_processing_tests() {
 		test_cases.push_back(tc);
 	}
 
-	if(run_tests(test_cases)) printf("[+] ARM Data Processing: OK\n");
-	else printf("[-] ARM Data Processing: FAIL\n");
-}
+END_MODULE(arm_data_processing_tests)
 
-void Test::arm_ldr_str() {
-	std::vector<test_case> test_cases;
-	test_case tc;
-	
+START_MODULE(arm_ldr_str)
 	tc.instr = 0xE7C01002;
 	tc.in_regs.reg.r0 = 0x02000000; // Address for write
 	tc.out_regs.reg.r0 = 0x02000000; // Address for write
@@ -678,19 +664,12 @@ void Test::arm_ldr_str() {
 
 		test_cases.push_back(tc);
 	}
+END_MODULE(arm_ldr_str)
 
-	if(run_tests(test_cases)) printf("[+] ARM LDR & STR: OK\n");
-	else printf("[-] ARM LDR & STR: FAIL\n");
-}
-
-int data[15];
-void Test::arm_stm_ldm() {
-	std::vector<Test::test_case> test_cases;
-	Test::test_case tc;
-
+int data[16];
+START_MODULE(arm_stm_ldm)
 	tc.in_regs.reg.r0 = 0x02000000;
 	tc.out_regs.reg.r0 = 0x02000000;
-	tc.disass = true;
 	data[0] = 0x02000000;
 
 	for(int i = 1; i < 14; i++) {
@@ -700,34 +679,71 @@ void Test::arm_stm_ldm() {
 		data[i] = r;
 	}
 
+	data[15] = 0xC;
+
 	// Store all registers at the address of r0
 	tc.instr = 0xE880FFFF;
 	tc.callback = [] (Base::CPU *_cpu) -> void { 
 		for(int i = 0; i < 16; i++) {
-			printf("Called ... %.08X == %.08X\n", data[i], _cpu->r32(0x02000000 + 4*i));
+			if(data[i] != _cpu->r32(0x02000000 + 4*i)) printf("[-] Bug in STM/LDM: Could not load same values as were stored\n");
 		}
 	};
 	test_cases.push_back(tc);
 	tc.callback = nullptr;
+END_MODULE(arm_stm_ldm)
 
+START_MODULE(arm_mul)
 
+END_MODULE(arm_mul)
 
-	if(run_tests(test_cases)) printf("[+] ARM STM & LDM: OK\n");
-	else printf("[-] ARM STM & LDM: FAIL\n");
-}
-void Test::arm_mul() {
-	std::vector<Test::test_case> test_cases;
-	Test::test_case tc;
+START_MODULE(thumb_mov)
+END_MODULE(thumb_mov)
 
-	if(run_tests(test_cases)) printf("[+] ARM MUL: OK\n");
-	else printf("[-] ARM MUL: FAIL\n");
-}
+START_MODULE(thumb_add_sub)
+END_MODULE(thumb_add_sub)
+
+START_MODULE(thumb_cmp)
+END_MODULE(thumb_cmp)
+
+START_MODULE(thumb_alu)
+END_MODULE(thumb_alu)
+
+START_MODULE(thumb_bx)
+END_MODULE(thumb_bx)
+
+START_MODULE(thumb_ldr_str)
+END_MODULE(thumb_ldr_str)
+
+START_MODULE(thumb_ldr_special)
+END_MODULE(thumb_ldr_special)
+
+START_MODULE(thumb_lda)
+END_MODULE(thumb_lda)
+
+START_MODULE(thumb_push_pop)
+END_MODULE(thumb_push_pop)
+
+START_MODULE(thumb_branch)
+END_MODULE(thumb_branch)
 
 void Test::all_tests() {
+	printf("[@] Commencing ARM Tests:\n");
 	Test::arm_branch_tests();
 	Test::arm_bx_tests();
 	Test::arm_data_processing_tests();
 	Test::arm_ldr_str();
 	Test::arm_stm_ldm();
 	Test::arm_mul();
+
+	printf("[@] Commencing THUMB Tests:\n");
+	Test::thumb_mov();
+	Test::thumb_add_sub();
+	Test::thumb_cmp();
+	Test::thumb_alu();
+	Test::thumb_bx();
+	Test::thumb_ldr_str();
+	Test::thumb_ldr_special();
+	Test::thumb_lda();
+	Test::thumb_push_pop();
+	Test::thumb_branch();
 }

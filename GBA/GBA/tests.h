@@ -52,6 +52,17 @@ namespace Test {
 	void arm_stm_ldm();
 	void arm_mul();
 
+	void thumb_mov();
+	void thumb_add_sub();
+	void thumb_cmp();
+	void thumb_alu();
+	void thumb_bx();
+	void thumb_ldr_str();
+	void thumb_ldr_special();
+	void thumb_lda();
+	void thumb_push_pop();
+	void thumb_branch();
+
 	void all_tests();
 
 }
