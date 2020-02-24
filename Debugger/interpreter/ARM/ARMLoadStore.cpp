@@ -94,18 +94,18 @@ void Debugger::arm_loadh(word instruction, Base::CPU *cpu) {
 
     word address = cpu->reg((instruction >> 16) & 0xF).data.reg32;
 	if (address == 0x06000022) {
-		printf("trying to read the thingy...\n");
+		//printf("trying to read the thingy...\n");
 	}
 
     if(pre) address += offset;
 
     if(half) {
         word r = (word) cpu->r16(address);
-		if (address == 0x06000020) printf("Read the 1111, but got %.04X\n", (hword) r);
+		//if (address == 0x06000020) printf("Read the 1111, but got %.04X\n", (hword) r);
         if(sig && (r & 0x8000)) r |= 0xFFFF0000;
         cpu->reg((instruction >> 12) & 0xF).data.reg32 = r;
 		if (address == 0x06000020) {
-			printf("Read the 1111, but got %.04X in the register\n", (hword)cpu->reg((instruction >> 12) & 0xF).data.reg32);
+			//printf("Read the 1111, but got %.04X in the register\n", (hword)cpu->reg((instruction >> 12) & 0xF).data.reg32);
 		}
 	} else {
         word r = (word) cpu->r8(address);

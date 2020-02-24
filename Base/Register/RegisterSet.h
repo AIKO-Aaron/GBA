@@ -7,12 +7,13 @@ namespace Base {
 	
 	class RegisterSet {
 	private:
-		Register **allRegisters = nullptr;
 		
 		void allocateRegisters();
 		void deallocateRegisters();
 		
 	public:
+		Register **allRegisters = nullptr;
+		
 		std::vector<std::vector<Register*>> registerBanks;
 		std::vector<Register*> currentRegisterBank;
 		

@@ -15,8 +15,9 @@ Debugger::Interpreter::~Interpreter() {
 }
 
 bool done = false;
+bool a = false;
 void Debugger::Interpreter::executeNextInstruction(bool disass) {
-    cpu->update_cycles(2); // All instructions increase the cycle by at least one
+    cpu->update_cycles(1); // All instructions increase the cycle by at least one
 
     // printf("Cpu cycle count: %.08X\n", cpu->cycle_count);
     
@@ -25,37 +26,61 @@ void Debugger::Interpreter::executeNextInstruction(bool disass) {
         word ni = fetchNextInstruction();
         //for (int i = BACKTRACE_SIZE - 1; i > 0; i--) instruction_trace[i] = instruction_trace[i - 1];
         //instruction_trace[0] = { pc().data.reg32, ni & (cpu->reg(CPSR).data.reg32 & FLAG_T ? 0xFFFF : 0xFFFFFFFF), cpu->reg(CPSR).data.reg32 & FLAG_T ? Decompiler::decompileTHUMB(ni & 0xFFFF, cpu, false) : Decompiler::decompileARM(ni, cpu, false), cpu->reg(R0).data.reg32 };
-        
-        if(cpu->reg(R4).data.reg32 == 0x02021730 && cpu->r8(0x0202175B) == 0x01) {
-            printf("That was not there before: %.08X\n", cpu->pc().data.reg32);            
-            cpu->w8(0x0202175B, 0);
+
+        /*if(pc().data.reg32 == 0x0808af16) {
+            printf("Collision variable is: %.08X\n", cpu->reg(R4).data.reg32);
+            // cpu->reg(R4).data.reg32 = 0; // Walk through walls
         }
 
-
-        if(pc().data.reg32 == 0x0807643C) {
-            printf("We're in this other function doing birch stuff... (CreatePokeballSpriteToReleaseMon)\n");
+        if(pc().data.reg32 == 0x08092bcc) {
+            printf("Called GetCollisionAtCoords with coordinates: %.04X, %.04X\n", cpu->reg(R1).data.reg32, cpu->reg(R2).data.reg32);
         }
 
-        if(pc().data.reg32 == 0x080078C6 && !done) {
-            word sprite_obj_addr = cpu->reg(R0).data.reg32;
-            word anims = cpu->r32(sprite_obj_addr + 8);
+        if(pc().data.reg32 == 0x080887f6) {
+            printf("Returning from 0x080887f6 R0=%.08X\n", cpu->reg(R0).data.reg32);
+            cpu->reg(R0).data.reg32 = 1;
+        }*/
 
-
-            if(anims == 0x082EC69C) {
-                done = true;
-                disassemble = 100;
-                printf("Reached the place...\n");
-                printf("Sprite state object (r0 --> r0+0x30) @ %.08X:\n00\t\t", cpu->reg(R0).data.reg32);
-                for(int i = 0; i < 16 * 3 + 15; i++) {
-                    printf("%.02X ", cpu->r8(cpu->reg(R0).data.reg32 + i));
-                    if(i % 16 == 15) printf("\n%.02X\t\t", i / 16 + 1);
-                }
-                printf("\n");
-            }
+        if(pc().data.reg32 == 0x080887b4) {
+            word saveptr = 0x03005d8c;
+            word saveblock = cpu->r32(saveptr);
+            cpu->mmu->game_state_obj_addr = saveblock;
+            printf("[1] Called CanCameraMoveInDirection: Saveblock addr: %.08X, pos: %.04X, %.04X\n", saveblock, cpu->r16(saveblock), cpu->r16(saveblock + 2));
         }
 
-        /*if (pc().data.reg32 == 0x08007804) {
-            printf("Reached this point with %.08X in R1 and %.08X in R2\n", cpu->reg(R1).data.reg32, cpu->reg(R2).data.reg32);
+        /*if(pc().data.reg32 == 0x0808edE0) {
+            word sprite_ptr = cpu->reg(R0).data.reg32;
+            word our_sprite = sprite_ptr + 0x32;
+            //printf("CameraObject_1 --> Sprite @ %.08X { data[2] = %.02X data[3] = %.02X}\n", our_sprite, cpu->r8(our_sprite), cpu->r8(our_sprite + 1));
+            word pos1 = sprite_ptr + 0x20;
+            cpu->mmu->game_state_obj_addr = pos1;
+
+            //if(a) disassemble = 0x30;
+            //a = false;
+        }*/
+
+        if(pc().data.reg32 == 0x080888b2) {
+            cpu->reg(R10).data.reg32 = 0;
+            cpu->reg(R9).data.reg32 = 0;
+            printf("Adding %.08X %.08X to coordinates...\n", cpu->reg(R10).data.reg32, cpu->reg(R9).data.reg32);
+            //a = true;
+        }
+
+        /*if(pc().data.reg32 == 0x0808a0f8) {
+            word cameraobjptr = cpu->reg(R0).data.reg32;
+            word callback = cpu->r32(cameraobjptr + 0x00);
+            word spriteid = cpu->r32(cameraobjptr + 0x04);
+            word v_x = cpu->r32(cameraobjptr + 0x08);
+            word v_y = cpu->r32(cameraobjptr + 0x0C);
+            word x = cpu->r32(cameraobjptr + 0x10);
+            word y = cpu->r32(cameraobjptr + 0x14);
+
+            printf("CameraUpdateCallback with obj @ %.08X {callback = %.08X, sid = %.08X, vx = %.08X, vy = %.08X, x = %.08X, y = %.08X}\n", cameraobjptr, callback, spriteid, v_x, v_y, x, y);
+
+            word sprite_ptr = 0x02020662;
+            word our_sprite = sprite_ptr + 0x44 * spriteid;
+            printf("Sprite @ %.08X { data[2] = %.02X data[3] = %.02X}\n", our_sprite, cpu->r8(our_sprite), cpu->r8(our_sprite + 1));
+            cpu->mmu->game_state_obj_addr = our_sprite;
         }*/
 
         if(disassemble) {

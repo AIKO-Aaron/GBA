@@ -722,17 +722,27 @@ START_MODULE(thumb_mov)
 	for(int i = 0; i < 0x20; i++) { // Immidiate
 		for(int rs = 0; rs < 8; rs++) {
 			for(int rd = 0; rd < 8; rd++) {
+				tc.out_regs.reg.cpsr = FLAG_T;
+
 				// LSL
 				tc.instr = (i << 6) | (rs << 3) | rd;
 				tc.out_regs.registers[rd] = tc.in_regs.registers[rs] << i;
+				if((tc.in_regs.registers[rs] >> (32 - i)) & 1) tc.out_regs.reg.cpsr |= FLAG_C;
+				if(tc.out_regs.registers[rd] >> 31) tc.out_regs.reg.cpsr |= FLAG_N;
+				if(!tc.out_regs.registers[rd]) tc.out_regs.reg.cpsr |= FLAG_Z;
 				test_cases.push_back(tc);
 
 				// LSR
+				tc.out_regs.reg.cpsr = FLAG_T;
 				tc.instr |= (1 << 11);
 				tc.out_regs.registers[rd] = tc.in_regs.registers[rs] >> i;
+				if((tc.in_regs.registers[rs] & (1 << (i - 1)))) tc.out_regs.reg.cpsr |= FLAG_C;
+				if(tc.out_regs.registers[rd] & (1 << 31)) tc.out_regs.reg.cpsr |= FLAG_N;
+				if(!tc.out_regs.registers[rd]) tc.out_regs.reg.cpsr |= FLAG_Z;
 				test_cases.push_back(tc);
 
 				// ASR
+				// Same CPSR as LSR (theoretically)
 				tc.instr &= ~(1 << 11);
 				tc.instr |= (1 << 12);
 				tc.out_regs.registers[rd] = (tc.in_regs.registers[rs] >> i) | ((tc.in_regs.registers[rs] & 0x80000000) ? (0xFFFFFFFF << (32 - i)) : 0);
@@ -746,30 +756,129 @@ START_MODULE(thumb_mov)
 END_MODULE(thumb_mov)
 
 START_MODULE(thumb_add_sub)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_add_sub)
 
 START_MODULE(thumb_cmp)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_cmp)
 
 START_MODULE(thumb_alu)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
+
+	tc.in_regs.reg.r0 = 0xDEADBEEF;
+	tc.in_regs.reg.r1 = 0x00000010;
+	tc.in_regs.reg.r2 = 0x00000100;
+	tc.in_regs.reg.r3 = 0x00001000;
+	tc.in_regs.reg.r4 = 0x00010000;
+	tc.in_regs.reg.r5 = 0x00100000;
+	tc.in_regs.reg.r6 = 0x01000000;
+	tc.in_regs.reg.r7 = 0x10000000;
+
+	tc.out_regs.reg.r0 = 0xDEADBEEF;
+	tc.out_regs.reg.r1 = 0x00000010;
+	tc.out_regs.reg.r2 = 0x00000100;
+	tc.out_regs.reg.r3 = 0x00001000;
+	tc.out_regs.reg.r4 = 0x00010000;
+	tc.out_regs.reg.r5 = 0x00100000;
+	tc.out_regs.reg.r6 = 0x01000000;
+	tc.out_regs.reg.r7 = 0x10000000;
+
+	for(int rs = 0; rs < 8; rs++) {
+		for(int rd = 0; rd < 8; rd++) {
+			// MUL
+			tc.instr = (0x4000) | (0xD << 6) | (rs << 3) | rd;
+			tc.out_regs.reg.cpsr = FLAG_T;
+			tc.out_regs.registers[rd] = tc.in_regs.registers[rd] * tc.in_regs.registers[rs];
+			if(tc.out_regs.registers[rd] >> 31) tc.out_regs.reg.cpsr |= FLAG_N;
+			if(!tc.out_regs.registers[rd]) tc.out_regs.reg.cpsr |= FLAG_Z;
+
+			test_cases.push_back(tc);
+
+			tc.out_regs.registers[rd] = tc.in_regs.registers[rd];
+		}
+	}
 END_MODULE(thumb_alu)
 
 START_MODULE(thumb_bx)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_bx)
 
 START_MODULE(thumb_ldr_str)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_ldr_str)
 
 START_MODULE(thumb_ldr_special)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_ldr_special)
 
 START_MODULE(thumb_lda)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_lda)
 
 START_MODULE(thumb_push_pop)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
+
+	tc.in_regs.reg.sp = 0x03000400;
+	tc.out_regs.reg.sp = 0x03000400 - 4 * 9;
+
+	word val;
+	word vals[8];
+	for(int i = 0; i < 8; i++) {
+		val = rand() & 0xFFFFFFFF;
+		tc.in_regs.registers[i] = val;
+		tc.out_regs.registers[i] = val;
+		vals[i] = val;
+	}
+	tc.in_regs.reg.lr = 0xDEADBEEF;
+	tc.out_regs.reg.lr = 0xDEADBEEF;
+
+	tc.instr = 0xB5FF;
+	test_cases.push_back(tc);
+
+	tc.in_regs.reg.sp = 0x03000400 - 4 * 9;
+	tc.out_regs.reg.sp = 0x03000400;
+	tc.out_regs.reg.pc = 0xDEADBEEE;
+	for(int i = 0; i < 8; i++) tc.in_regs.registers[i] = 0;	
+	tc.instr = 0xBDFF;
+	test_cases.push_back(tc);
+
+	tc.out_regs.reg.pc = 0x02;
+	tc.in_regs.reg.r0 = 0x03000400;
+	tc.out_regs.reg.r0 = 0x03000400 + 4 * 8;
+	tc.in_regs.reg.sp = 0;
+	tc.out_regs.reg.sp = 0;
+	tc.instr = 0xC0FF;
+
+	for(int i = 1; i < 8; i++) tc.in_regs.registers[i] = vals[i];	
+	test_cases.push_back(tc);
+	for(int i = 1; i < 8; i++) tc.in_regs.registers[i] = 0;	
+	tc.instr = 0xC8FF;
+	tc.in_regs.reg.r0 = 0x03000400;
+	tc.out_regs.reg.r0 = 0x03000400 + 4 * 8;
+	test_cases.push_back(tc);
 END_MODULE(thumb_push_pop)
 
 START_MODULE(thumb_branch)
+	tc.in_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.cpsr |= FLAG_T;
+	tc.out_regs.reg.pc = 2;
 END_MODULE(thumb_branch)
 
 void Test::all_tests() {

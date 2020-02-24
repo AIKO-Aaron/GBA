@@ -68,7 +68,7 @@ void Debugger::execute_thumb(hword instruction, Base::CPU *cpu) {
         } else {
             if(instruction & 0x2000) {
                 if(instruction & 0x1000) {
-                    if(instruction & 0x0400) {
+                    if(instruction & 0x0400) { // POP
                         int num = 0;
                         for(int i = 0; i < 9; i++) if(instruction & (1 << i)) ++num;
                         if(instruction & 0x0800) {
@@ -81,7 +81,7 @@ void Debugger::execute_thumb(hword instruction, Base::CPU *cpu) {
                             }
                             if(instruction & 0x0100) cpu->reg(PC).data.reg32 = cpu->r32(start_address) & 0xFFFFFFFE;
                             cpu->reg(SP).data.reg32 += 4 * num;
-                        } else {
+                        } else { // PUSH
                             word start_address = cpu->reg(SP).data.reg32 - 4 * num;
                             for(int i = 0; i < 8; i++) {
                                 if(instruction & (1 << i)) {

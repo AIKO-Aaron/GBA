@@ -133,7 +133,7 @@ void Base::GPU::update() {
     while(cycles >= 4) {
         cycles -= 4;
         ++x_dot;
-        if(x_dot >= 240) flags |= 0x2;
+        if(x_dot == 240) flags |= 0x2;
         if(x_dot >= 308) {
             x_dot = 0;
             ++y_dot;
@@ -258,7 +258,10 @@ void Base::GPU::render(Base::CPU *cpu) {
     }
 
 	if(std::chrono::high_resolution_clock::now() - start >= std::chrono::seconds(1)) {
-		printf("FPS %d\n", fps);
+		// printf("FPS %d\n", fps);
+		char title[100];
+		sprintf(title, "FPS: %d", fps);
+		SDL_SetWindowTitle(window, title);
 		start = std::chrono::high_resolution_clock::now();
 		fps = 0;
 	}

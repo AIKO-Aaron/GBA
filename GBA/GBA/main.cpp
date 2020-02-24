@@ -11,6 +11,8 @@
 #  include "GBADecompiler.h"
 #endif
 
+bool saving = false;
+
 int start_game(int argc, char **args) {
     printf("[INFO] Starting GBA Emulator in %s\n", args[0]);
     Debugger::Interpreter *interpreter = new Debugger::Interpreter();
@@ -29,15 +31,49 @@ int start_game(int argc, char **args) {
 	{
         interpreter->executeNextInstruction(false);
 
+		if(keys[SDL_SCANCODE_KP_0] && !saving) { // Load/Store save Save
+			saving = true;
+			if(keys[SDL_SCANCODE_LSHIFT]) {
+				size_t size = 0x40000 + 0x8000 + 0x400 + 0x400 + 0x18000 + 0x400 + 4 * 37;
+				byte *data = (byte*) malloc(size);
+
+				int index = 0;
+				memcpy(data + index, interpreter->cpu->mmu->memory[2], 0x40000); index += 0x40000;
+				memcpy(data + index, interpreter->cpu->mmu->memory[3], 0x8000); index += 0x8000;
+				memcpy(data + index, interpreter->cpu->mmu->memory[4], 0x400); index += 0x400;
+				memcpy(data + index, interpreter->cpu->mmu->memory[5], 0x400); index += 0x400;
+				memcpy(data + index, interpreter->cpu->mmu->memory[6], 0x18000); index += 0x18000;
+				memcpy(data + index, interpreter->cpu->mmu->memory[7], 0x400); index += 0x400;
+				for(int i = 0; i < 37; i++) memcpy(data + index + i * 4, &interpreter->cpu->set->allRegisters[i]->data.reg32, 4);
+
+				FILE *f = fopen("save.sav", "wb");
+				fwrite(data, 1, size, f);
+				fclose(f);
+				free(data);
+			} else {
+				FILE *f = fopen("save.sav", "rb");
+
+				fread(interpreter->cpu->mmu->memory[2], 1, 0x40000, f);
+				fread(interpreter->cpu->mmu->memory[3], 1, 0x8000, f);
+				fread(interpreter->cpu->mmu->memory[4], 1, 0x400, f);
+				fread(interpreter->cpu->mmu->memory[5], 1, 0x400, f);
+				fread(interpreter->cpu->mmu->memory[6], 1, 0x18000, f);
+				fread(interpreter->cpu->mmu->memory[7], 1, 0x400, f);
+				for(int i = 0; i < 37; i++) fread(&interpreter->cpu->set->allRegisters[i]->data.reg32, 4, 1, f);
+
+				fclose(f);
+			}
+		} else saving = false;
+
         if(++counter >= 280896) {
-		interpreter->cpu->mmu->button_a = keys[SDL_SCANCODE_W];
-		interpreter->cpu->mmu->button_b = keys[SDL_SCANCODE_KP_PERIOD];
-		interpreter->cpu->mmu->button_start = keys[SDL_SCANCODE_E];
-		interpreter->cpu->mmu->button_select = keys[SDL_SCANCODE_N];
-		interpreter->cpu->mmu->button_up = keys[SDL_SCANCODE_UP];
-		interpreter->cpu->mmu->button_down = keys[SDL_SCANCODE_DOWN];
-		interpreter->cpu->mmu->button_left = keys[SDL_SCANCODE_LEFT];
-		interpreter->cpu->mmu->button_right = keys[SDL_SCANCODE_RIGHT];
+			interpreter->cpu->mmu->button_a = keys[SDL_SCANCODE_W];
+			interpreter->cpu->mmu->button_b = keys[SDL_SCANCODE_KP_PERIOD];
+			interpreter->cpu->mmu->button_start = keys[SDL_SCANCODE_E];
+			interpreter->cpu->mmu->button_select = keys[SDL_SCANCODE_N];
+			interpreter->cpu->mmu->button_up = keys[SDL_SCANCODE_UP];
+			interpreter->cpu->mmu->button_down = keys[SDL_SCANCODE_DOWN];
+			interpreter->cpu->mmu->button_left = keys[SDL_SCANCODE_LEFT];
+			interpreter->cpu->mmu->button_right = keys[SDL_SCANCODE_RIGHT];
 
         	counter = 0;
         	interpreter->cpu->render();

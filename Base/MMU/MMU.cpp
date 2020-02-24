@@ -150,7 +150,7 @@ bool Base::MMU::flash_check(word address, word value) {
 		return false;
 	}
 	
-	printf("Wrote %.08X to %.08X in flash\n", value, address);
+	// printf("Wrote %.08X to %.08X in flash\n", value, address);
 
 	return old_stage != flash_cmd_stage;
 }
@@ -359,6 +359,10 @@ void Base::MMU::check_stuff(word address, word value) {
 	} else if(address == 0x0400010C) {
         timers->t3_reload = value;
     }
+
+	if(address == game_state_obj_addr) {
+		printf("Written %.08X (Value = %.02X) in the game state object @ %.08X\n", address, value, addr);
+	}
 
 	if(address == 0x0202175B && value) {
 		printf("Written to 0x0202175B with value %.02X @ %.08X\n", value, addr);

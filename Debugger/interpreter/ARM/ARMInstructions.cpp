@@ -87,7 +87,7 @@ void Debugger::execute_arm(word instruction, Base::CPU *cpu) {
                     printf("Single Data Swap\n");
                     exit(0);
                 }
-                else if (instruction & 0x00800000) {
+                else if (instruction & 0x00800000) { // MUL
                     bool sign = instruction & (1 << 22);
                     bool acc = instruction & (1 << 21);
                     bool s = instruction & (1 << 20);
