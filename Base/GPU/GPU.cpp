@@ -134,7 +134,7 @@ void Base::GPU::update() {
         cycles -= 4;
         ++x_dot;
         if(x_dot == 240) flags |= 0x2;
-        if(x_dot >= 308) {
+        if(x_dot == 308) {
             x_dot = 0;
             ++y_dot;
 
@@ -242,17 +242,22 @@ void Base::GPU::render(Base::CPU *cpu) {
 		if (!one_d_mapping) name &= 0xFFFFFFFE;
 
 		//printf("Rendering tile with name: %.08X\n", name);
+		bool horizonal_flip = attrib1 & (1 << 12);
+		bool vertical_flip = attrib1 & (1 << 13);
 
-        for(word yc = 0; yc < h; yc++) {
-            for(word xc = 0; xc < w; xc++) {
-				word xc2 = depth ? (xc*2) : xc;
-				word tile_index = name + (one_d_mapping ? (xc2 + yc * w) : (xc2 + yc * 32));
+        for(word ycoord = 0; ycoord < h; ycoord++) {
+            for(word xcoord = 0; xcoord < w; xcoord++) {
+				word xpoint = horizonal_flip ? (w - 1 - xcoord) : xcoord;
+				word ypoint = vertical_flip ? (h - 1 - ycoord) : ycoord;
+
+				word xpoint2 = depth ? (xpoint*2) : xpoint;
+				word tile_index = name + (one_d_mapping ? (xpoint2 + ypoint * w) : (xpoint2 + ypoint * 32));
 
 				//if (xc || yc) continue;
 				
 				byte* data = &(mmu->memory[6][(bg_mode < 3 ? 0x00010000 : 0x00014000) + tile_index * (depth ? 32 : 32)]);
 
-				draw_tile((attrib2 >> 12) & 0xF, data, palette_obj, x + xc * 8, y + yc * 8, depth, attrib1 & (1 << 13), attrib1 & (1 << 12), true);
+				draw_tile((attrib2 >> 12) & 0xF, data, palette_obj, x + xcoord * 8, y + ycoord * 8, depth, vertical_flip, horizonal_flip, true);
             }
         }
     }

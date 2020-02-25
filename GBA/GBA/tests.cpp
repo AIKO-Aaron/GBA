@@ -810,6 +810,34 @@ START_MODULE(thumb_bx)
 	tc.in_regs.reg.cpsr |= FLAG_T;
 	tc.out_regs.reg.cpsr |= FLAG_T;
 	tc.out_regs.reg.pc = 2;
+
+	tc.instr = 0x4600;
+	for(int i = 0; i < 15; i++) {
+		for(int j = 0; j < 15; j++) {
+			if(i == j || (i < 8 && j < 8)) continue;
+			// mov ri, rj
+			tc.instr = 0x4600 | (i > 7 ? 0x0080 : 0) | (j > 7 ? 0x0040 : 0) | ((j & 0x7) << 3) | (i & 0x7);
+
+			word val = rand() & 0xFFFFFFFF;
+			tc.in_regs.registers[j] = val;
+			tc.out_regs.registers[j] = val;
+			tc.out_regs.registers[i] = val;
+
+			test_cases.push_back(tc);
+
+			tc.instr = 0x4400 | (i > 7 ? 0x0080 : 0) | (j > 7 ? 0x0040 : 0) | ((j & 0x7) << 3) | (i & 0x7); // ADD ri, rj
+			word val2 = rand() & 0xFFFFFFFF;
+			tc.in_regs.registers[i] = val;
+			tc.out_regs.registers[i] = val;
+			tc.out_regs.registers[i] = val + val2;
+
+			tc.in_regs.registers[i] = 0;
+			tc.in_regs.registers[j] = 0;
+			tc.out_regs.registers[i] = 0;
+			tc.out_regs.registers[j] = 0;
+		}
+	}
+
 END_MODULE(thumb_bx)
 
 START_MODULE(thumb_ldr_str)
