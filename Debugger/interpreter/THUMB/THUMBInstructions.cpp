@@ -258,7 +258,7 @@ void Debugger::execute_thumb(hword instruction, Base::CPU *cpu) {
 							if(a2 <= a1) cpu->reg(CPSR).data.reg32 |= FLAG_C;
 							else cpu->reg(CPSR).data.reg32 &= ~FLAG_C;
 							
-							if((a2 & 0x80000000) != (a1 & 0x80000000) && (a1 & 0x80000000) == ((a1-a2) & 0x80000000)) cpu->reg(CPSR).data.reg32 |= FLAG_V;
+							if((a2 & 0x80000000) != (a1 & 0x80000000) && (a2 & 0x80000000) == ((a1-a2) & 0x80000000)) cpu->reg(CPSR).data.reg32 |= FLAG_V;
 							else cpu->reg(CPSR).data.reg32 &= ~FLAG_V;
 						} else { // ADD
 							cpu->reg(instruction & 0x7).data.reg32 = a1 + a2;

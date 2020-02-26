@@ -372,5 +372,5 @@ void Base::MMU::check_stuff(word address, word value) {
 		printf("Enabling the key interrupts... %.02x\n", value);
 	}
     
-    if(address >= 0x10000000) printf("Illegal address written to at: %.08X\n", addr);
+    if(address >= 0x10000000) printf("Illegal address (%.08X) written to at: %.08X\n", address, addr);
 }

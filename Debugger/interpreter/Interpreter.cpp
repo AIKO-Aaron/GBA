@@ -33,17 +33,20 @@ void Debugger::Interpreter::executeNextInstruction(bool disass) {
             cpu->reg(R4).data.reg32 = 0; // Walk through walls
         }
 
-        if(pc().data.reg32 == 0x080888ac) {
-            
+        /*word get_caller_of_func = 0x0808887c;
+        if(pc().data.reg32 == get_caller_of_func + 4) {
+            printf("Caller of function %.08X is: (LR) %.08X\n", get_caller_of_func, cpu->reg(LR).data.reg32);
+        }
 
+        if(pc().data.reg32 == 0x080888ac) {
             if(cpu->reg(R10).data.reg32) {
-                if(ctr++ % 16) {
+                if(ctr++ % 17) {
                     cpu->reg(R10).data.reg32 = 0;
                 } else {
-                    ctr %= 16;
+                    ctr = 2; // 16 times called, only updated once
                     cpu->reg(R9).data.reg32 = 0;
                 } 
-            }
+            } else ctr = 1; // When y is updated, x is updated 16 times but it should be counted 0 times, because a bug I presume?
 
             word saveptr = 0x03005d8c;
             word saveblock = cpu->r32(saveptr);
@@ -63,6 +66,12 @@ void Debugger::Interpreter::executeNextInstruction(bool disass) {
             // cpu->mmu->game_state_obj_addr = our_sprite;
         }
 
+        if(pc().data.reg32 == 0x0808a10e) {
+            printf("[@] From CameraUpdateCallback() --> R1 (x) = %.08X\n", cpu->reg(R1).data.reg32);
+        }
+
+        if(pc().data.reg32 == 0x0808A1E2 && (cpu->reg(R4).data.reg32 || cpu->reg(R5).data.reg32)) disassemble = 0x17;*/
+
         if(disassemble) {
             --disassemble;
             for(int i = 0; i < 6; i++) {
@@ -72,7 +81,7 @@ void Debugger::Interpreter::executeNextInstruction(bool disass) {
             }
         }
 
-        cpu->mmu->addr=cpu->pc().data.reg32;
+        cpu->mmu->addr = cpu->pc().data.reg32;
 
         if(cpu->reg(CPSR).data.reg32 & FLAG_T) {
             if(disass || disassemble) std::string out = Decompiler::decompileTHUMB(ni & 0xFFFF, cpu);
